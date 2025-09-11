@@ -1,0 +1,41 @@
+#ifndef _TBLIS_CONFIG_H_
+#define _TBLIS_CONFIG_H_
+
+#define TBLIS_VERSION_MAJOR   2
+#define TBLIS_VERSION_MINOR   0
+#define TBLIS_VERSION_PATCH   0
+#define TBLIS_VERSION         "2.0"
+
+#define TBLIS_HAVE_GCC_BITSET_BUILTINS 1
+
+#define TBLIS_HAVE_CXX20_BITSET 1
+
+/* #undef TBLIS_ENABLE_COMPAT */
+
+#define TBLIS_HAVE_HWLOC_H 1
+
+#define TBLIS_HAVE_HWLOC_H 1
+
+#define TBLIS_HAVE_LSCPU 1
+
+#define TBLIS_HAVE_SYSCONF 1
+
+/* #undef TBLIS_HAVE_SYSCTL */
+
+/* #undef TBLIS_HAVE_SYSCTLBYNAME */
+
+#define TBLIS_HAVE__SC_NPROCESSORS_CONF 1
+
+#define TBLIS_HAVE__SC_NPROCESSORS_ONLN 1
+
+/* #undef TBLIS_LARGE_ATOMIC_WORKAROUND */
+
+#define TBLIS_LABEL_TYPE char
+
+#define TBLIS_LEN_TYPE ptrdiff_t
+
+#define TBLIS_STRIDE_TYPE ptrdiff_t
+
+#define TBLIS_RESTRICT __restrict
+
+#endif
