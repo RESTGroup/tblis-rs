@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = ["tblis-ffi"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+description = "TBLIS FFI bindings, wrappers and build-from-source"
+repository = "https://github.com/RESTGroup/tblis-rs"
+keywords = ["ffi", "chemistry", "tensor"]
+categories = ["science"]
+license = "Apache-2.0"
+
+[workspace.dependencies]

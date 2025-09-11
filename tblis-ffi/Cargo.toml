@@ -1,0 +1,13 @@
+[package]
+name = "tblis-ffi"
+description = "FFI bindings of TBLIS"
+
+edition.workspace = true
+version.workspace = true
+description.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
