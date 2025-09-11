@@ -14,5 +14,6 @@ num = { workspace = true }
 libloading = { workspace = true, optional = true }
 
 [features]
+default = []
 dynamic_loading = ["dep:libloading"]
 
