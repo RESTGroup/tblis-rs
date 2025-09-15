@@ -11,6 +11,9 @@ license.workspace = true
 [build-dependencies]
 cmake = { workspace = true }
 
+[dev-dependencies]
+tblis-ffi = { path = "../tblis-ffi" }
+
 [features]
 default = []
 
