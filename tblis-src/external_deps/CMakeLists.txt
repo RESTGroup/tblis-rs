@@ -18,16 +18,16 @@ else()
     message(STATUS "Download source code (tblis): ${TBLIS_SRC}")
 endif()
 
-if(CINT_VER)
-    message(STATUS "User specified version of library (tblis): ${CINT_VER}")
+if(TBLIS_VER)
+    message(STATUS "User specified version of library (tblis): ${TBLIS_VER}")
 else()
-    set(CINT_VER develop)
-    message(STATUS "Download version of library (tblis): ${CINT_VER}")
+    set(TBLIS_VER develop)
+    message(STATUS "Download version of library (tblis): ${TBLIS_VER}")
 endif()
 
-ExternalProject_Add(cint
+ExternalProject_Add(tblis
     GIT_REPOSITORY ${TBLIS_SRC}
-    GIT_TAG ${CINT_VER}
+    GIT_TAG ${TBLIS_VER}
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
     PREFIX ${PROJECT_BINARY_DIR}/deps
