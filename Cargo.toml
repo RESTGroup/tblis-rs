@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["tblis-ffi"]
+members = ["tblis-ffi", "tblis-src"]
 
 [workspace.package]
 edition = "2024"
@@ -14,3 +14,4 @@ license = "Apache-2.0"
 [workspace.dependencies]
 num = { version = "0.4" }
 libloading = { version = "0.8" }
+cmake = { version = "0.1" }

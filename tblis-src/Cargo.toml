@@ -1,0 +1,18 @@
+[package]
+name = "tblis-src"
+edition.workspace = true
+version.workspace = true
+description.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[build-dependencies]
+cmake = { workspace = true }
+
+[features]
+default = []
+
+build_from_source = []
+static = []
