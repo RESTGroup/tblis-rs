@@ -3,17 +3,14 @@ use std::path::PathBuf;
 fn build_tblis() {
     // read environment variables
     // - TBLIS_SRC: source of tblis (should be git repository URL or path to local source)
-    // - TBLIS_VER: version of tblis (`develop` for example)
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let default_src = format!("{manifest_dir}/external_deps/tblis");
     let tblis_src = std::env::var("TBLIS_SRC").unwrap_or(default_src);
-    let tblis_ver = std::env::var("TBLIS_VER").unwrap_or("develop".into());
 
     // TBLIS build both static and shared by default
     if cfg!(feature = "build_from_source") {
-        let dst =
-            cmake::Config::new("external_deps").define("TBLIS_SRC", tblis_src).define("TBLIS_VER", tblis_ver).build();
+        let dst = cmake::Config::new("external_deps").define("TBLIS_SRC", tblis_src).build();
         // CMAKE_INSTALL_LIBDIR can be lib64 on some platforms
         println!("cargo:rustc-link-search=native={}/lib", dst.display());
         println!("cargo:rustc-link-search=native={}/lib64", dst.display());

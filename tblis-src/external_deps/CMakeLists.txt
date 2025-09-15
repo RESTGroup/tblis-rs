@@ -14,22 +14,12 @@ endif()
 if(TBLIS_SRC)
     message(STATUS "User specified directory of source code (tblis): ${TBLIS_SRC}")
 else()
-    set(TBLIS_SRC https://github.com/sunqm/tblis.git)
+    set(TBLIS_SRC https://github.com/MatthewsResearchGroup/tblis.git)
     message(STATUS "Download source code (tblis): ${TBLIS_SRC}")
 endif()
 
-if(TBLIS_VER)
-    message(STATUS "User specified version of library (tblis): ${TBLIS_VER}")
-else()
-    set(TBLIS_VER develop)
-    message(STATUS "Download version of library (tblis): ${TBLIS_VER}")
-endif()
-
 ExternalProject_Add(tblis
-    GIT_REPOSITORY ${TBLIS_SRC}
-    GIT_TAG ${TBLIS_VER}
-    GIT_SHALLOW TRUE
-    GIT_PROGRESS TRUE
+    URL ${TBLIS_SRC}
     PREFIX ${PROJECT_BINARY_DIR}/deps
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=RELEASE
