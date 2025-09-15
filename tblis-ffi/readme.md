@@ -1,6 +1,8 @@
-# TBLIS FFI bindings
+# tblis-ffi: TBLIS FFI bindings
 
 This crate contains TBLIS FFI bindings.
+
+[TBLIS](https://github.com/MatthewsResearchGroup/tblis) (Tensor BLIS, The Tensor-Based Library Instantiation Software) can perform various tensor operations (multiplication, addition, reduction, transposition, etc.) efficiently on single-node CPU. This library can be an underlying driver for performing einsum (Einstein summation).
 
 Current FFI version is [TBLIS 9b95712](https://github.com/MatthewsResearchGroup/tblis/commit/9b95712966cb8804be51c62bfd6207957f62bc6f) after v1.3.0. If you are using an older version of TBLIS, this crate should still work if you do not explicitly call the function that only occurs in higher version of TBLIS.
 
