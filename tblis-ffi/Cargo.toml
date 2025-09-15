@@ -1,6 +1,7 @@
 [package]
 name = "tblis-ffi"
 description = "FFI bindings of TBLIS"
+readme = "readme.md"
 
 edition.workspace = true
 version.workspace = true

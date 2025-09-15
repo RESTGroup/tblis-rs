@@ -1,8 +1,10 @@
 [package]
 name = "tblis-src"
+description = "Crate for TBLIS Source Code"
+readme = "readme.md"
+
 edition.workspace = true
 version.workspace = true
-description.workspace = true
 repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
