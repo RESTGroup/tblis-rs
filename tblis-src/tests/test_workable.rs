@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    extern crate tblis_src;
     use tblis_ffi::tblis::*;
 
     #[test]
