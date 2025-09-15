@@ -8,7 +8,7 @@ fn build_tblis() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let default_src = format!("{manifest_dir}/external_deps/tblis");
     let tblis_src = std::env::var("TBLIS_SRC").unwrap_or(default_src);
-    let tblis_ver = std::env::var("TBLIS_VER").unwrap_or("default".into());
+    let tblis_ver = std::env::var("TBLIS_VER").unwrap_or("develop".into());
 
     // TBLIS build both static and shared by default
     if cfg!(feature = "build_from_source") {
