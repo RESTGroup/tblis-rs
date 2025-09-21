@@ -4,7 +4,7 @@ members = ["tblis-ffi", "tblis-src"]
 
 [workspace.package]
 edition = "2024"
-version = "0.1.1"
+version = "0.1.2"
 description = "TBLIS FFI bindings, wrappers and build-from-source"
 repository = "https://github.com/RESTGroup/tblis-rs"
 keywords = ["ffi", "chemistry", "tensor"]
