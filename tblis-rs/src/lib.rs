@@ -6,4 +6,5 @@ pub mod tensor_ops;
 pub mod prelude {
     pub use crate::containers::TblisTensor;
     pub use crate::float_trait::TblisFloatAPI;
+    pub use crate::tensor_ops::*;
 }
