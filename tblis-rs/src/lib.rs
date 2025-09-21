@@ -1,3 +1,4 @@
+pub mod char_parse;
 pub mod containers;
 pub mod float_trait;
 
