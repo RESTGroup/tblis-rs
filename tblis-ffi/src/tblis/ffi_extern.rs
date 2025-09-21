@@ -111,6 +111,13 @@ unsafe extern "C" {
         A: *mut tblis_tensor,
         idx_A: *const label_type,
     );
+    pub fn tblis_tensor_shift(
+        comm: *const tblis_comm,
+        cntx: *const tblis_config,
+        alpha: *const tblis_scalar,
+        A: *mut tblis_tensor,
+        idx_A: *const label_type,
+    );
     pub fn tblis_tensor_mult(
         comm: *const tblis_comm,
         cntx: *const tblis_config,

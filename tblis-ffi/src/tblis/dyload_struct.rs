@@ -138,6 +138,15 @@ pub struct DyLoadLib {
             idx_A: *const label_type,
         ),
     >,
+    pub tblis_tensor_shift: Option<
+        unsafe extern "C" fn(
+            comm: *const tblis_comm,
+            cntx: *const tblis_config,
+            alpha: *const tblis_scalar,
+            A: *mut tblis_tensor,
+            idx_A: *const label_type,
+        ),
+    >,
     pub tblis_tensor_mult: Option<
         unsafe extern "C" fn(
             comm: *const tblis_comm,
