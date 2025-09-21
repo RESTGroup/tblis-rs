@@ -14,3 +14,4 @@ license.workspace = true
 tblis-ffi = { workspace = true }
 duplicate = { workspace = true }
 num = { workspace = true }
+derive_builder = { workspace = true }

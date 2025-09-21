@@ -5,6 +5,7 @@ use core::ffi::c_int;
 
 /* #region TblisTensor */
 
+#[derive(Debug, Clone)]
 pub struct TblisTensor<T>
 where
     T: TblisFloatAPI,
@@ -20,6 +21,11 @@ impl<T> TblisTensor<T>
 where
     T: TblisFloatAPI,
 {
+    pub fn new(data: *mut T, shape: Vec<isize>, stride: Vec<isize>) -> Self {
+        assert!(shape.len() == stride.len());
+        Self { data, shape, stride, conj: false, scalar: T::one() }
+    }
+
     pub fn to_ffi_tensor(&self) -> tblis_ffi::tblis::tblis_tensor {
         assert!(self.shape.len() == self.stride.len());
         tblis_ffi::tblis::tblis_tensor {
