@@ -33,6 +33,7 @@ impl DyLoadLib {
             tblis_tensor_reduce: get_symbol(&libs, b"tblis_tensor_reduce\0").map(|sym| *sym),
             tblis_tensor_scale: get_symbol(&libs, b"tblis_tensor_scale\0").map(|sym| *sym),
             tblis_tensor_set: get_symbol(&libs, b"tblis_tensor_set\0").map(|sym| *sym),
+            tblis_tensor_shift: get_symbol(&libs, b"tblis_tensor_shift\0").map(|sym| *sym),
             tblis_tensor_mult: get_symbol(&libs, b"tblis_tensor_mult\0").map(|sym| *sym),
         };
         result.__libraries = libs;

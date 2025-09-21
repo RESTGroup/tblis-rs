@@ -168,6 +168,16 @@ pub unsafe fn tblis_tensor_set(
     dyload_lib().tblis_tensor_set.unwrap()(comm, cntx, alpha, A, idx_A)
 }
 
+pub unsafe fn tblis_tensor_shift(
+    comm: *const tblis_comm,
+    cntx: *const tblis_config,
+    alpha: *const tblis_scalar,
+    A: *mut tblis_tensor,
+    idx_A: *const label_type,
+) {
+    dyload_lib().tblis_tensor_shift.unwrap()(comm, cntx, alpha, A, idx_A)
+}
+
 pub unsafe fn tblis_tensor_mult(
     comm: *const tblis_comm,
     cntx: *const tblis_config,
