@@ -7,10 +7,12 @@ fn build_tblis() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let default_src = format!("{manifest_dir}/external_deps/tblis");
     let tblis_src = std::env::var("TBLIS_SRC").unwrap_or(default_src);
+    let tblis_ver = std::env::var("TBLIS_VER").unwrap_or("develop".to_string());
 
     // TBLIS build both static and shared by default
     if cfg!(feature = "build_from_source") {
-        let dst = cmake::Config::new("external_deps").define("TBLIS_SRC", tblis_src).build();
+        let dst =
+            cmake::Config::new("external_deps").define("TBLIS_SRC", tblis_src).define("TBLIS_VER", tblis_ver).build();
         // CMAKE_INSTALL_LIBDIR can be lib64 on some platforms
         println!("cargo:rustc-link-search=native={}/lib", dst.display());
         println!("cargo:rustc-link-search=native={}/lib64", dst.display());

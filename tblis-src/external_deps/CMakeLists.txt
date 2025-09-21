@@ -1,4 +1,4 @@
-# Please note that options (`TBLIS_SRC`, `CINT_VER`, etc.) will be always be overrided
+# Please note that options (`TBLIS_SRC`, `TBLIS_VER`, etc.) will be always be overrided
 # in build.rs building script. However, this CMakeLists.txt is also valid for standalone
 # building.
 
@@ -18,8 +18,18 @@ else()
     message(STATUS "Download source code (tblis): ${TBLIS_SRC}")
 endif()
 
+if(TBLIS_VER)
+    message(STATUS "User specified version of library (tblis): ${TBLIS_VER}")
+else()
+    set(TBLIS_VER develop)
+    message(STATUS "Download version of library (tblis): ${TBLIS_VER}")
+endif()
+
 ExternalProject_Add(tblis
-    URL ${TBLIS_SRC}
+    GIT_REPOSITORY ${TBLIS_SRC}
+    GIT_TAG ${TBLIS_VER}
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
     PREFIX ${PROJECT_BINARY_DIR}/deps
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=RELEASE
