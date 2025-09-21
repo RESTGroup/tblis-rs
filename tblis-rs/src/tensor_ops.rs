@@ -10,6 +10,7 @@ use tblis_ffi::tblis::{tblis_comm, tblis_config};
 
 /* #region cfg builder */
 
+#[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisTriCfg<T>
 where
@@ -38,6 +39,7 @@ where
     }
 }
 
+#[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisBiCfg<T>
 where
@@ -66,6 +68,7 @@ where
     }
 }
 
+#[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisUniCfg<T>
 where
@@ -78,7 +81,7 @@ where
     #[builder(default = "T::one()")]
     pub alpha: T,
     #[builder(default = "false")]
-    pub conja: bool,
+    pub conj: bool,
 }
 
 impl<T> Default for TblisUniCfg<T>
@@ -90,6 +93,21 @@ where
     }
 }
 
+#[non_exhaustive]
+#[derive(Builder, Debug, Clone)]
+pub struct TblisZeroCfg {
+    #[builder(default = "null()")]
+    pub comm: *const tblis_comm,
+    #[builder(default = "null()")]
+    pub cntx: *const tblis_config,
+}
+
+impl Default for TblisZeroCfg {
+    fn default() -> Self {
+        TblisZeroCfgBuilder::default().build().unwrap()
+    }
+}
+
 /* #endregion */
 
 /* #region add */
@@ -97,8 +115,13 @@ where
 pub use TblisBiCfg as TblisAddCfg;
 pub use TblisBiCfgBuilder as TblisAddCfgBuilder;
 
-pub fn tensor_add<T>(a: &TblisTensor<T>, idx_a: &str, b: &mut TblisTensor<T>, idx_b: &str, cfg: Option<TblisAddCfg<T>>)
-where
+pub fn tblis_tensor_add<T>(
+    a: &TblisTensor<T>,
+    idx_a: &str,
+    b: &mut TblisTensor<T>,
+    idx_b: &str,
+    cfg: Option<TblisAddCfg<T>>,
+) where
     T: TblisFloatAPI,
 {
     let indices = char_parse(&[idx_a, idx_b]);
@@ -106,7 +129,6 @@ where
     let TblisAddCfg { comm, cntx, alpha, beta, conja, conjb } = cfg.unwrap_or_default();
 
     let mut a = a.clone();
-    let mut b = b.clone();
 
     a.scalar = alpha;
     b.scalar = beta;
@@ -125,7 +147,13 @@ where
 pub use TblisBiCfg as TblisDotCfg;
 pub use TblisBiCfgBuilder as TblisDotCfgBuilder;
 
-pub fn tensor_dot<T>(a: &TblisTensor<T>, idx_a: &str, b: &TblisTensor<T>, idx_b: &str, cfg: Option<TblisDotCfg<T>>) -> T
+pub fn tblis_tensor_dot<T>(
+    a: &TblisTensor<T>,
+    idx_a: &str,
+    b: &TblisTensor<T>,
+    idx_b: &str,
+    cfg: Option<TblisDotCfg<T>>,
+) -> T
 where
     T: TblisFloatAPI,
 {
@@ -163,7 +191,7 @@ where
 pub use TblisTriCfg as TblisMultCfg;
 pub use TblisTriCfgBuilder as TblisMultCfgBuilder;
 
-pub fn tensor_mult<T>(
+pub fn tblis_tensor_mult<T>(
     a: &TblisTensor<T>,
     idx_a: &str,
     b: &TblisTensor<T>,
@@ -180,7 +208,6 @@ pub fn tensor_mult<T>(
 
     let mut a = a.clone();
     let mut b = b.clone();
-    let mut c = c.clone();
 
     a.scalar = alpha;
     b.scalar = T::one();
@@ -208,6 +235,7 @@ pub fn tensor_mult<T>(
 /* #region reduce */
 
 #[repr(u32)]
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TblisReduceOp {
     Sum = tblis_ffi::tblis::reduce_t::REDUCE_SUM as _,
@@ -261,17 +289,17 @@ impl From<TblisReduceOp> for tblis_ffi::tblis::reduce_t {
 pub use TblisUniCfg as TblisReduceCfg;
 pub use TblisUniCfgBuilder as TblisReduceCfgBuilder;
 
-pub fn tensor_reduce<T>(a: &TblisTensor<T>, idx_a: &str, op: TblisReduceOp, cfg: Option<TblisReduceCfg<T>>) -> T
+pub fn tblis_tensor_reduce<T>(a: &TblisTensor<T>, idx_a: &str, op: TblisReduceOp, cfg: Option<TblisReduceCfg<T>>) -> T
 where
     T: TblisFloatAPI,
 {
     let indices = char_parse(&[idx_a]);
     let a_idx = indices[0].as_ptr();
-    let TblisReduceCfg { comm, cntx, alpha, conja } = cfg.unwrap_or_default();
+    let TblisReduceCfg { comm, cntx, alpha, conj } = cfg.unwrap_or_default();
 
     let mut a = a.clone();
     a.scalar = alpha;
-    a.conj = conja;
+    a.conj = conj;
     let op = op.into();
 
     let result = T::zero();
@@ -288,6 +316,72 @@ where
         );
     }
     result
+}
+
+/* #endregion */
+
+/* #region scale */
+
+pub use TblisUniCfg as TblisScaleCfg;
+pub use TblisUniCfgBuilder as TblisScaleCfgBuilder;
+
+pub fn tblis_tensor_scale<T>(a: &mut TblisTensor<T>, idx_a: &str, cfg: Option<TblisScaleCfg<T>>)
+where
+    T: TblisFloatAPI,
+{
+    let indices = char_parse(&[idx_a]);
+    let a_idx = indices[0].as_ptr();
+    let TblisScaleCfg { comm, cntx, alpha, conj } = cfg.unwrap_or_default();
+
+    a.scalar = alpha;
+    a.conj = conj;
+
+    unsafe {
+        tblis_ffi::tblis::tblis_tensor_scale(comm, cntx, &mut a.to_ffi_tensor(), a_idx);
+    }
+}
+
+/* #endregion */
+
+/* #region set */
+
+pub use TblisZeroCfg as TblisSetCfg;
+pub use TblisZeroCfgBuilder as TblisSetCfgBuilder;
+
+pub fn tblis_tensor_set<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisSetCfg>)
+where
+    T: TblisFloatAPI,
+{
+    let indices = char_parse(&[idx_a]);
+    let a_idx = indices[0].as_ptr();
+    let TblisSetCfg { comm, cntx } = cfg.unwrap_or_default();
+
+    unsafe {
+        tblis_ffi::tblis::tblis_tensor_set(comm, cntx, &alpha.to_ffi_scalar(), &mut a.to_ffi_tensor(), a_idx);
+    }
+}
+
+/* #endregion */
+
+/* #region shift */
+
+pub use TblisUniCfg as TblisShiftCfg;
+pub use TblisUniCfgBuilder as TblisShiftCfgBuilder;
+
+pub fn tblis_tensor_shift<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisShiftCfg<T>>)
+where
+    T: TblisFloatAPI,
+{
+    let indices = char_parse(&[idx_a]);
+    let a_idx = indices[0].as_ptr();
+    let TblisShiftCfg { comm, cntx, alpha: alpha_a, conj } = cfg.unwrap_or_default();
+
+    a.scalar = alpha_a;
+    a.conj = conj;
+
+    unsafe {
+        tblis_ffi::tblis::tblis_tensor_shift(comm, cntx, &alpha.to_ffi_scalar(), &mut a.to_ffi_tensor(), a_idx);
+    }
 }
 
 /* #endregion */
