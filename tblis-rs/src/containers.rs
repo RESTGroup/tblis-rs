@@ -1,33 +1,36 @@
 //! TBLIS data containers.
 
 use crate::prelude::*;
+use core::ffi::c_int;
 
-/* #region TblisScalar */
+/* #region TblisTensor */
 
-#[derive(Clone, Copy)]
-pub struct TblisScalar<T>
+pub struct TblisTensor<T>
 where
     T: TblisFloatAPI,
 {
-    pub scalar: tblis_ffi::tblis::tblis_scalar,
-    pub _phantom: std::marker::PhantomData<T>,
+    pub data: *mut T,
+    pub shape: Vec<isize>,
+    pub stride: Vec<isize>,
+    pub conj: bool,
+    pub scalar: T,
 }
 
-impl<T> From<T> for TblisScalar<T>
+impl<T> TblisTensor<T>
 where
     T: TblisFloatAPI,
 {
-    fn from(val: T) -> Self {
-        TblisFloatAPI::from_scalar(val)
-    }
-}
-
-impl<T> std::fmt::Debug for TblisScalar<T>
-where
-    T: TblisFloatAPI + std::fmt::Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TblisScalar({:?})", TblisFloatAPI::to_scalar(self))
+    pub fn to_ffi_tensor(&self) -> tblis_ffi::tblis::tblis_tensor {
+        assert!(self.shape.len() == self.stride.len());
+        tblis_ffi::tblis::tblis_tensor {
+            type_: T::TYPE,
+            conj: if self.conj { 1 } else { 0 },
+            scalar: self.scalar.to_ffi_scalar(),
+            data: self.data as *mut std::ffi::c_void,
+            ndim: self.shape.len() as c_int,
+            len: self.shape.as_ptr() as *mut isize,
+            stride: self.stride.as_ptr() as *mut isize,
+        }
     }
 }
 

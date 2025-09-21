@@ -1,13 +1,13 @@
 //! TBLIS trait for floating point types.
 
-use crate::prelude::*;
+// use crate::prelude::*;
 use duplicate::duplicate_item;
 use num::Complex;
+use num::complex::ComplexFloat;
 
-pub trait TblisFloatAPI: Sized {
+pub trait TblisFloatAPI: ComplexFloat {
     const TYPE: tblis_ffi::tblis::type_t;
-    fn from_scalar(s: Self) -> TblisScalar<Self>;
-    fn to_scalar(s: &TblisScalar<Self>) -> Self;
+    fn to_ffi_scalar(&self) -> tblis_ffi::tblis::tblis_scalar;
 }
 
 #[duplicate_item(
@@ -20,17 +20,10 @@ pub trait TblisFloatAPI: Sized {
 impl TblisFloatAPI for T {
     const TYPE: tblis_ffi::tblis::type_t = FLOAT_TYPE;
 
-    fn from_scalar(val: Self) -> TblisScalar<Self> {
-        TblisScalar {
-            scalar: tblis_ffi::tblis::tblis_scalar {
-                data: tblis_ffi::tblis::tblis_scalar_scalar { FLOAT_FIELD: val },
-                type_: FLOAT_TYPE,
-            },
-            _phantom: std::marker::PhantomData,
+    fn to_ffi_scalar(&self) -> tblis_ffi::tblis::tblis_scalar {
+        tblis_ffi::tblis::tblis_scalar {
+            data: tblis_ffi::tblis::tblis_scalar_scalar { FLOAT_FIELD: *self },
+            type_: FLOAT_TYPE,
         }
-    }
-
-    fn to_scalar(scalar: &TblisScalar<Self>) -> Self {
-        unsafe { scalar.scalar.data.FLOAT_FIELD }
     }
 }
