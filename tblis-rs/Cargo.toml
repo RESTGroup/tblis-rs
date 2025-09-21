@@ -1,0 +1,16 @@
+[package]
+name = "tblis-rs"
+description = "TBLIS Minimal Implementation in Rust"
+readme = "readme.md"
+
+edition.workspace = true
+version.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+license.workspace = true
+
+[dependencies]
+tblis-ffi = { workspace = true }
+duplicate = { workspace = true }
+num = { workspace = true }
