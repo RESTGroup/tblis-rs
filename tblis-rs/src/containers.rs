@@ -41,3 +41,18 @@ where
 }
 
 /* #endregion */
+
+/* #region conversion */
+
+pub trait ToTblisTensor<T>
+where
+    T: TblisFloatAPI,
+{
+    /// # Safety
+    ///
+    /// This function does not check mutability of the data pointer. The TBLIS tensor can
+    /// always be mutable.
+    unsafe fn to_tblis_tensor(&self) -> TblisTensor<T>;
+}
+
+/* #endregion */
