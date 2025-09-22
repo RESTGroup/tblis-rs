@@ -15,3 +15,10 @@ tblis-ffi = { workspace = true }
 duplicate = { workspace = true }
 num = { workspace = true }
 derive_builder = { workspace = true }
+opt-einsum-path = { workspace = true }
+ndarray = { workspace = true, optional = true }
+
+[features]
+default = []
+ndarray = ["dep:ndarray"]
+dynamic_loading = ["tblis-ffi/dynamic_loading"]
