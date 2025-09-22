@@ -81,19 +81,6 @@ fn shape_to_stride(shape: &[isize], row_major: bool) -> Vec<isize> {
     stride
 }
 
-pub fn tblis_einsum<T>(
-    subscripts: &str,
-    operands: &[&TblisTensor<T>],
-    optimize: impl PathOptimizer,
-    memory_limit: impl Into<SizeLimitType>,
-    row_major: bool,
-) -> (Vec<T>, TblisTensor<T>)
-where
-    T: TblisFloatAPI,
-{
-    tblis_einsum_f(subscripts, operands, optimize, memory_limit, row_major).unwrap()
-}
-
 fn tblis_trace_f<T>(
     subscript_prev: &str,
     subscript_traced: &str,
@@ -106,8 +93,9 @@ where
     let idx_prev: Vec<char> = subscript_prev.chars().collect();
     let idx_traced: Vec<char> = subscript_traced.chars().collect();
     let subscript_traced = idx_traced.iter().collect::<String>();
-    assert!(idx_prev.len() == tsr_prev.shape.len());
-    assert!(idx_traced.len() <= idx_prev.len());
+    if idx_prev.len() != tsr_prev.shape.len() {
+        return Err("Subscript length does not match tensor ndim.".to_string());
+    }
     // build shape/stride for traced tensor
     let shape_traced = idx_traced
         .iter()
@@ -122,20 +110,37 @@ where
     Ok((vec_traced, tsr_traced))
 }
 
+pub fn tblis_einsum<T>(
+    subscripts: &str,
+    operands: &[&TblisTensor<T>],
+    optimize: impl PathOptimizer,
+    memory_limit: impl Into<SizeLimitType>,
+    row_major: bool,
+    out_tblis_tensor: Option<&mut TblisTensor<T>>,
+) -> Option<(Vec<T>, TblisTensor<T>)>
+where
+    T: TblisFloatAPI,
+{
+    tblis_einsum_f(subscripts, operands, optimize, memory_limit, row_major, out_tblis_tensor).unwrap()
+}
+
+#[allow(clippy::type_complexity)]
 pub fn tblis_einsum_f<T>(
     subscripts: &str,
     operands: &[&TblisTensor<T>],
     optimize: impl PathOptimizer,
     memory_limit: impl Into<SizeLimitType>,
     row_major: bool,
-) -> Result<(Vec<T>, TblisTensor<T>), String>
+    out_tblis_tensor: Option<&mut TblisTensor<T>>,
+) -> Result<Option<(Vec<T>, TblisTensor<T>)>, String>
 where
     T: TblisFloatAPI,
 {
     let shapes: Vec<Vec<usize>> = operands.iter().map(|t| t.shape.iter().map(|&s| s as usize).collect()).collect();
     let steps = tblis_einsum_prep_f(subscripts, &shapes, optimize, memory_limit)?;
     let mut tensor_list: Vec<(TblisTensor<T>, Option<Vec<T>>)> = operands.iter().map(|&t| (t.clone(), None)).collect();
-    for step in steps.iter() {
+    let num_steps = steps.len();
+    for (idx_step, step) in steps.iter().enumerate() {
         let TblisContractStep { indices, idx_a, idx_b, idx_c, shape_c } = step;
 
         if let Some(idx_b) = idx_b {
@@ -167,10 +172,22 @@ where
 
             let tsr_a = &tensor_list[indices[0]].0;
             let tsr_b = &tensor_list[indices[1]].0;
-            let size_c = shape_c.iter().product::<isize>() as usize;
-            let vec_c = unsafe { crate::alloc_vec::uninitialized_vec::<T>(size_c)? };
-            let stride_c = shape_to_stride(shape_c, row_major);
-            let mut tsr_c = TblisTensor::new(vec_c.as_ptr() as *mut T, shape_c, &stride_c);
+            let is_last_step = idx_step == num_steps - 1;
+            let (vec_c, mut tsr_c) = if is_last_step && let Some(ref out_tblis_tensor) = out_tblis_tensor {
+                // final tensor with pre-allocated space
+                let tsr_c = out_tblis_tensor;
+                if tsr_c.shape != *shape_c {
+                    return Err("Output tensor shape mismatch.".to_string());
+                }
+                (None, (*tsr_c).clone())
+            } else {
+                // intermediate tensor or final tensor without pre-allocated space
+                let size_c = shape_c.iter().product::<isize>() as usize;
+                let vec_c = unsafe { crate::alloc_vec::uninitialized_vec::<T>(size_c)? };
+                let stride_c = shape_to_stride(shape_c, row_major);
+                let tsr_c = TblisTensor::new(vec_c.as_ptr() as *mut T, shape_c, &stride_c);
+                (Some(vec_c), tsr_c)
+            };
             // handle empty idx_a/idx_b (scalar-like operations)
             match (idx_a.is_empty(), idx_b.is_empty()) {
                 (false, false) => {
@@ -192,7 +209,7 @@ where
                     crate::tensor_ops::tblis_tensor_add(tsr_a, &idx_a, &mut tsr_c, idx_c, Some(add_cfg));
                 },
             };
-            tensor_list.push((tsr_c, Some(vec_c)));
+            tensor_list.push((tsr_c, vec_c));
         } else {
             // case of tensor transpose (implement by add)
             let tsr_a = &tensor_list[indices[0]].0;
@@ -213,7 +230,7 @@ where
     }
     assert!(tensor_list.len() == 1);
     let (tsr, vec_opt) = tensor_list.pop().unwrap();
-    if let Some(vec) = vec_opt { Ok((vec, tsr)) } else { Err("Final tensor does not own its data.".to_string()) }
+    if let Some(vec) = vec_opt { Ok(Some((vec, tsr))) } else { Err("Final tensor does not own its data.".to_string()) }
 }
 
 #[cfg(feature = "ndarray")]
@@ -279,24 +296,28 @@ fn playground() {
     let tsr_eri = unsafe { arr_eri.to_tblis_tensor() };
 
     let (vec_t2, tsr_t2) = tblis_einsum_f(
-        "μi,νa,μνκλ,κj,λb->iajb",                    // Expression to contract | &str
-        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c], // Tensors to contract   | &[&TblisTensor<T>]
-        "optimal",                                   // Optimization kind      | impl PathOptimizer
-        None,                                        // Memory limit           | impl Into<SizeLimitType>
-        true,                                        // Row-major / Col-major  | bool
+        "μi,νa,μνκλ,κj,λb->iajb",
+        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c],
+        "optimal",
+        None,
+        true,
+        None,
     )
+    .unwrap()
     .unwrap();
 
     println!("{:?}", vec_t2);
     println!("{:?}", tsr_t2);
 
     let arr_t2 = tblis_einsum_f(
-        "μi,νa,μνκλ,κj,λb->iajb",                    // Expression to contract | &str
-        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c], // Tensors to contract   | &[&TblisTensor<T>]
-        "optimal",                                   // Optimization kind      | impl PathOptimizer
-        None,                                        // Memory limit           | impl Into<SizeLimitType>
-        false,                                       // Row-major / Col-major  | bool
+        "μi,νa,μνκλ,κj,λb->iajb",
+        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c],
+        "optimal",
+        None,
+        false,
+        None,
     )
+    .unwrap()
     .unwrap()
     .into_array();
 
