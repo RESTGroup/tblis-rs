@@ -1,4 +1,4 @@
-# # Test reference generation (real)
+# # Test reference generation
 
 # ## Source Info
 
@@ -50,9 +50,11 @@ def build_views(string, dtype, dimension_dict=dim_dict):
     return tuple(views)
 
 
-# ## test einsum
+# ## Test data
 
-tests = {
+single_array_tests = ["ea", "fb", "abcd", "gc", "hd", "efgh", "acdf", "gihb", "hfac", "gfac", "gifabc", "hfac"]
+
+mult_array_tests = {
     "scalar-like operations": [
         "a,->a",
         "ab,->ab",
@@ -126,7 +128,7 @@ tests = {
         "abcd,efdc",  
     ],
     "Inner than dot": [
-        "aab,bc ->ac",
+        "aab,bc->ac",
         "ab,bcc->ac",
         "aab,bcc->ac",
         "baa,bcc->ac",
@@ -148,20 +150,28 @@ tests = {
 }
 
 
+# ## Ref: einsum
+
 def test_einsum(string, dtype):
     views = build_views(string, dtype=dtype)
     result = np.einsum(string, *views)
     return result.shape, fp(result)
 
 
-for test_type, test_cases in tests.items():
+for test_type, test_cases in mult_array_tests.items():
     print(f"// [TYPE] {test_type}")
     for case in test_cases:
         shape, fp_val = test_einsum(case, np.float64)
         print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, {fp_val:20.16f})]")
 
+for test_type, test_cases in mult_array_tests.items():
+    print(f"// [TYPE] {test_type}")
+    for case in test_cases:
+        shape, fp_val = test_einsum(case, np.complex128)
+        print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, ({fp_val.real:20.16f}, {fp_val.imag:20.16f}))]")
 
-# ## test transpose
+
+# ## Ref: transpose
 
 def test_transpose(string, dtype, rng_val=0):
     views = build_views(string, dtype=dtype)
@@ -174,12 +184,10 @@ def test_transpose(string, dtype, rng_val=0):
     return command_string, result.shape, fp(result)
 
 
-single_array_tests = ["ea", "fb", "abcd", "gc", "hd", "efgh", "acdf", "gihb", "hfac", "gfac", "gifabc", "hfac"]
-
 for count, token in enumerate(single_array_tests):
     case, shape, fp_val = test_transpose(token, np.float64, count)
     print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, {fp_val:20.16f})]")
 
-
-
-
+for count, token in enumerate(single_array_tests):
+    case, shape, fp_val = test_transpose(token, np.complex128, count)
+    print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, ({fp_val.real:20.16f}, {fp_val.imag:20.16f}))]")
