@@ -285,7 +285,7 @@ pub use ndarray_einsum::*;
 
 #[test]
 #[cfg(feature = "ndarray")]
-fn playground() {
+fn test_ndarray_workable() {
     use ndarray::prelude::*;
     let nao: usize = 3;
     let nocc: usize = 2;

@@ -1,5 +1,7 @@
 #![allow(clippy::excessive_precision)]
 
+extern crate tblis_src;
+
 use num::complex::ComplexFloat;
 use rstest::rstest;
 use tblis_rs::prelude::*;

@@ -13,6 +13,7 @@ license = "Apache-2.0"
 
 [workspace.dependencies]
 tblis-ffi = { path = "./tblis-ffi", version = "0.1.2" }
+tblis-src = { path = "./tblis-src", version = "0.1.2" }
 num = { version = "0.4" }
 libloading = { version = "0.8" }
 cmake = { version = "0.1" }
