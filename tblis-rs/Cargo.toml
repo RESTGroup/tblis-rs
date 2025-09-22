@@ -18,6 +18,9 @@ derive_builder = { workspace = true }
 opt-einsum-path = { workspace = true }
 ndarray = { workspace = true, optional = true }
 
+[dev-dependencies]
+rstest = { workspace = true }
+
 [features]
 default = []
 ndarray = ["dep:ndarray"]

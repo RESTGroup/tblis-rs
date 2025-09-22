@@ -6,9 +6,8 @@ pub mod float_trait;
 pub mod tensor_ops;
 
 pub mod prelude {
-    pub use crate::containers::{TblisTensor, ToTblisTensor};
-    #[cfg(feature = "ndarray")]
-    pub use crate::einsum_impl::ndarray_einsum::*;
-    pub use crate::float_trait::TblisFloatAPI;
+    pub use crate::containers::*;
+    pub use crate::einsum_impl::*;
+    pub use crate::float_trait::*;
     pub use crate::tensor_ops::*;
 }

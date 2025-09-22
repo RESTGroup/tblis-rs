@@ -20,3 +20,4 @@ duplicate = { version = "2.0" }
 derive_builder = { version = "0.20" }
 opt-einsum-path = { version = "0.1" }
 ndarray = { version = "0.16" }
+rstest = { version = "0.26" }

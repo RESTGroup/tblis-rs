@@ -21,9 +21,9 @@ impl<T> TblisTensor<T>
 where
     T: TblisFloatAPI,
 {
-    pub fn new(data: *mut T, shape: Vec<isize>, stride: Vec<isize>) -> Self {
+    pub fn new(data: *mut T, shape: &[isize], stride: &[isize]) -> Self {
         assert!(shape.len() == stride.len());
-        Self { data, shape, stride, conj: false, scalar: T::one() }
+        Self { data, shape: shape.to_vec(), stride: stride.to_vec(), conj: false, scalar: T::one() }
     }
 
     pub fn to_ffi_tensor(&self) -> tblis_ffi::tblis::tblis_tensor {
@@ -37,6 +37,27 @@ where
             len: self.shape.as_ptr() as *mut isize,
             stride: self.stride.as_ptr() as *mut isize,
         }
+    }
+
+    pub fn to_scalar(&self) -> Result<T, String> {
+        // only size=1 tensors can be converted to scalars
+        if self.shape.iter().product::<isize>() == 1 {
+            let val = unsafe { *self.data * self.scalar };
+            let val = if self.conj { val.conj() } else { val };
+            Ok(val)
+        } else {
+            Err("Tensor is not a scalar".into())
+        }
+    }
+
+    pub fn set_scalar(&mut self, scalar: T) -> &mut Self {
+        self.scalar = scalar;
+        self
+    }
+
+    pub fn set_conj(&mut self, conj: bool) -> &mut Self {
+        self.conj = conj;
+        self
     }
 }
 
