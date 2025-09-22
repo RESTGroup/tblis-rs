@@ -148,8 +148,10 @@ where
             let mut idx_a = idx_a.clone();
             let mut idx_b = idx_b.clone();
 
-            // tblis_tensor_mult is not able to handle combined contract with trace
             // handle trace here
+            // - tblis_tensor_mult is not able to handle combined contract with trace
+            // - trace means something like "eca, ab -> e", where 'c' in first and 'b' in second are redundant
+            //   indices, should be traced before contraction
             let idx_a_set = idx_a.chars().collect::<BTreeSet<char>>();
             let idx_b_set = idx_b.chars().collect::<BTreeSet<char>>();
             let idx_c_set = idx_c.chars().collect::<BTreeSet<char>>();
