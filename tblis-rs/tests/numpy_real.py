@@ -50,7 +50,7 @@ def build_views(string, dtype, dimension_dict=dim_dict):
     return tuple(views)
 
 
-# ## test_contract
+# ## test einsum
 
 tests = {
     "scalar-like operations": [
@@ -154,7 +154,6 @@ def test_einsum(string, dtype):
     return result.shape, fp(result)
 
 
-# %%time
 for test_type, test_cases in tests.items():
     print(f"// [TYPE] {test_type}")
     for case in test_cases:
@@ -162,8 +161,24 @@ for test_type, test_cases in tests.items():
         print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, {fp_val:20.16f})]")
 
 
+# ## test transpose
+
+def test_transpose(string, dtype, rng_val=0):
+    views = build_views(string, dtype=dtype)
+    arr = views[0]
+    rng = np.random.default_rng(rng_val)
+    perm = rng.permutation(len(arr.shape))
+    string_perm = "".join(np.array(list(string))[perm])
+    command_string = f"{string}->{string_perm}"
+    result = np.einsum(command_string, *views)
+    return command_string, result.shape, fp(result)
 
 
+single_array_tests = ["ea", "fb", "abcd", "gc", "hd", "efgh", "acdf", "gihb", "hfac", "gfac", "gifabc", "hfac"]
+
+for count, token in enumerate(single_array_tests):
+    case, shape, fp_val = test_transpose(token, np.float64, count)
+    print(f"#[case({'"' + case + '"':40}, vec!{str(list(shape)):20}, {fp_val:20.16f})]")
 
 
 

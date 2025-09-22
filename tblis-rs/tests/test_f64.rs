@@ -120,7 +120,20 @@ fn build_tblis_tensor(s: &str) -> (Vec<f64>, TblisTensor<f64>) {
 #[case("bbd,bda,fc,db->acf"                    , vec![2, 4, 3]           ,   2.2992302890561374)]
 #[case("dba,ead,cad->bce"                      , vec![3, 4, 4]           ,   0.7414744179866388)]
 #[case("aef,fbc,dca->bde"                      , vec![3, 5, 4]           ,   1.4158672478067489)]
-fn playground(#[case] einsum_str: &str, #[case] ref_shape: Vec<isize>, #[case] ref_fp: f64) {
+// [TYPE] Transpose only
+#[case("ea->ea"                                , vec![4, 2]              ,   4.2779003835689338)]
+#[case("fb->fb"                                , vec![3, 3]              ,   4.3272474273084374)]
+#[case("abcd->dcab"                            , vec![5, 4, 2, 3]        ,   5.0109395102756960)]
+#[case("gc->cg"                                , vec![4, 2]              ,   0.2680112599856153)]
+#[case("hd->dh"                                , vec![5, 6]              ,   4.4819580717183714)]
+#[case("efgh->hfge"                            , vec![6, 3, 2, 4]        ,   2.2237855229147154)]
+#[case("acdf->afcd"                            , vec![2, 3, 4, 5]        ,   3.2392076661644182)]
+#[case("gihb->ghib"                            , vec![2, 6, 5, 3]        ,  -2.1102327279824999)]
+#[case("hfac->cfah"                            , vec![4, 3, 2, 6]        ,   2.2237855229146861)]
+#[case("gfac->cgaf"                            , vec![4, 2, 2, 3]        ,   4.0858816458932754)]
+#[case("gifabc->abifcg"                        , vec![2, 3, 5, 3, 4, 2]  ,  -0.8209082897628117)]
+#[case("hfac->cfha"                            , vec![4, 3, 6, 2]        ,  -1.3035489268162346)]
+fn test_einsum(#[case] einsum_str: &str, #[case] ref_shape: Vec<isize>, #[case] ref_fp: f64) {
     let einsum_str_inp = einsum_str.split("->").next().unwrap().split(',').collect::<Vec<&str>>();
     let tensors = einsum_str_inp.iter().map(|s| build_tblis_tensor(s)).collect::<Vec<_>>();
     let tblis_tensors = tensors.iter().map(|(_, t)| t).collect::<Vec<_>>();
