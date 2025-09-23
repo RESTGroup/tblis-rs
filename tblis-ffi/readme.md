@@ -6,7 +6,7 @@ This crate contains TBLIS FFI bindings.
 
 Current FFI version is [TBLIS 9b95712](https://github.com/MatthewsResearchGroup/tblis/commit/9b95712966cb8804be51c62bfd6207957f62bc6f) after v1.3.0. If you are using an older version of TBLIS, this crate should still work if you do not explicitly call the function that only occurs in higher version of TBLIS.
 
-TBLIS (C++/C/ASM) source code is available on [github](https://github.com/MatthewsResearchGroup/tblis).
+TBLIS (C++) source code is available on [github](https://github.com/MatthewsResearchGroup/tblis).
 
 This crate is not official bindgen project. It is originally intended to serve rust tensor toolkit [RSTSR](https://github.com/RESTGroup/rstsr) and rust electronic structure toolkit [REST](https://gitee.com/RESTGroup/rest).
 

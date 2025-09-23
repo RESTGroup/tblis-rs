@@ -1,3 +1,5 @@
+#![doc = include_str!("../readme.md")]
+
 pub mod alloc_vec;
 pub mod char_parse;
 pub mod containers;

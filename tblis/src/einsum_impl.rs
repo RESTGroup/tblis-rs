@@ -283,45 +283,50 @@ pub mod ndarray_einsum {
 #[cfg(feature = "ndarray")]
 pub use ndarray_einsum::*;
 
-#[test]
+#[cfg(test)]
 #[cfg(feature = "ndarray")]
-fn test_ndarray_workable() {
-    use ndarray::prelude::*;
-    let nao: usize = 3;
-    let nocc: usize = 2;
-    let vec_c: Vec<f64> = (0..nao * nocc).map(|x| x as f64).collect();
-    let vec_eri: Vec<f64> = (0..nao * nao * nao * nao).map(|x| x as f64).collect();
+mod test_ndarray_workable {
+    #[test]
+    #[allow(clippy::let_and_return)]
+    fn test_ndarray_workable() {
+        use crate::prelude::*;
+        use ndarray::prelude::*;
+        let (nao, nocc): (usize, usize) = (3, 2);
+        let vec_c: Vec<f64> = (0..nao * nocc).map(|x| x as f64).collect();
+        let vec_e: Vec<f64> = (0..nao * nao * nao * nao).map(|x| x as f64).collect();
 
-    let arr_c = ArrayView2::from_shape((nao, nocc), &vec_c).unwrap();
-    let arr_eri = ArrayView4::from_shape((nao, nao, nao, nao), &vec_eri).unwrap();
-    let tsr_c = unsafe { arr_c.to_tblis_tensor() };
-    let tsr_eri = unsafe { arr_eri.to_tblis_tensor() };
+        let arr_c = ArrayView2::from_shape((nao, nocc), &vec_c).unwrap();
+        let arr_e = ArrayView4::from_shape((nao, nao, nao, nao), &vec_e).unwrap();
 
-    let (vec_t2, tsr_t2) = tblis_einsum_f(
-        "μi,νa,μνκλ,κj,λb->iajb",
-        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c],
-        "optimal",
-        None,
-        true,
-        None,
-    )
-    .unwrap()
-    .unwrap();
+        /// # Parameters
+        /// - `arr_c`: coefficient matrix $C_{\mu p}$
+        /// - `arr_s`: electronic integral $E_{\mu \nu \kappa \lambda}$ (in atomic orbital basis)
+        ///
+        /// # Returns
+        /// - `arr_g`: electronic integral $G_{pqrs}$ (in molecular orbital basis)
+        fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
+            // transform ndarray objects to tblis objects
+            let tsr_c = unsafe { arr_c.to_tblis_tensor() };
+            let tsr_e = unsafe { arr_e.to_tblis_tensor() };
 
-    println!("{:?}", vec_t2);
-    println!("{:?}", tsr_t2);
+            // generate operands and perform contraction
+            let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
+            let out_g = tblis_einsum(
+                "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+                &operands,                // tensors to be contracted
+                "optimal",                // contraction strategy (see crate opt-einsum-path)
+                None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+                true,                     // row-major (true) or col-major (false)
+                None,                     // pre-allocated output tensor (None to allocate internally)
+            );
+            let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
 
-    let arr_t2 = tblis_einsum_f(
-        "μi,νa,μνκλ,κj,λb->iajb",
-        &[&tsr_c, &tsr_c, &tsr_eri, &tsr_c, &tsr_c],
-        "optimal",
-        None,
-        false,
-        None,
-    )
-    .unwrap()
-    .unwrap()
-    .into_array();
+            // transform tblis object back to ndarray object
+            let arr_g = (vec_g, tsr_g).into_array().into_dimensionality().unwrap();
+            arr_g
+        }
 
-    println!("{:?}", arr_t2);
+        let arr_g = ao2mo(arr_c, arr_e);
+        println!("{:?}", arr_g);
+    }
 }

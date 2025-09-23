@@ -3,7 +3,7 @@
 extern crate tblis_src;
 
 use rstest::rstest;
-use tblis_rs::prelude::*;
+use tblis::prelude::*;
 
 fn gen_array(shape: &[isize]) -> Vec<f64> {
     let size = shape.iter().product();

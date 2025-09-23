@@ -4,7 +4,7 @@ extern crate tblis_src;
 
 use num::complex::ComplexFloat;
 use rstest::rstest;
-use tblis_rs::prelude::*;
+use tblis::prelude::*;
 
 #[allow(non_camel_case_types)]
 type c64 = num::Complex<f64>;
