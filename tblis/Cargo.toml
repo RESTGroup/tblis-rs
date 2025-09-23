@@ -1,6 +1,6 @@
 [package]
-name = "tblis-rs"
-description = "TBLIS Minimal Implementation in Rust"
+name = "tblis"
+description = "TBLIS wrapper in Rust"
 readme = "readme.md"
 
 edition.workspace = true
@@ -26,3 +26,7 @@ tblis-src = { workspace = true }
 default = []
 ndarray = ["dep:ndarray"]
 dynamic_loading = ["tblis-ffi/dynamic_loading"]
+
+[package.metadata.docs.rs]
+features = ["ndarray"]
+rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]
