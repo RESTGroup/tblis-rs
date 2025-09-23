@@ -16,5 +16,5 @@ jobs:
           git submodule update  --init --recursive --remote -f
       - name: run tests directly
         run: |
-          cd tblis-rs
+          cd tblis
           cargo test --test "*" --features="tblis-src/build_from_source" -- --nocapture
