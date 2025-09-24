@@ -404,7 +404,7 @@ pub mod ndarray_einsum {
         T: TblisFloatAPI,
         D: Dimension,
     {
-        unsafe fn to_tblis_tensor(&self) -> TblisTensor<T> {
+        fn to_tblis_tensor(&self) -> TblisTensor<T> {
             let shape = self.shape().iter().map(|&s| s as isize).collect::<Vec<isize>>();
             let stride = self.strides().to_vec();
             let data_ptr = self.as_ptr() as *mut T;
@@ -465,8 +465,8 @@ mod test_ndarray_workable {
         /// - `arr_g`: electronic integral $G_{pqrs}$ (in molecular orbital basis)
         fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
             // transform ndarray objects to tblis objects
-            let tsr_c = unsafe { arr_c.to_tblis_tensor() };
-            let tsr_e = unsafe { arr_e.to_tblis_tensor() };
+            let tsr_c = arr_c.to_tblis_tensor();
+            let tsr_e = arr_e.to_tblis_tensor();
 
             // generate operands and perform contraction
             let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
