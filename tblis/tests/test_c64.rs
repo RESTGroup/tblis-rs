@@ -144,7 +144,7 @@ fn test_einsum(#[case] einsum_str: &str, #[case] ref_shape: Vec<isize>, #[case] 
     let einsum_str_inp = einsum_str.split("->").next().unwrap().split(',').collect::<Vec<&str>>();
     let tensors = einsum_str_inp.iter().map(|s| build_tblis_tensor(s)).collect::<Vec<_>>();
     let tblis_tensors = tensors.iter().map(|(_, t)| t).collect::<Vec<_>>();
-    let (out_data, out_tensor) = tblis_einsum(einsum_str, &tblis_tensors, true, None, true, None).unwrap();
+    let (out_data, out_tensor) = unsafe { tblis_einsum(einsum_str, &tblis_tensors, true, None, true, None).unwrap() };
     let out_fp = fp(&out_data);
     assert_eq!(out_tensor.shape, ref_shape);
     assert!((out_fp - ref_fp).abs() < 1e-10);

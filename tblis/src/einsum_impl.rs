@@ -106,11 +106,14 @@ where
     let vec_traced = unsafe { crate::alloc_vec::uninitialized_vec::<T>(size_traced)? };
     let mut tsr_traced = TblisTensor::new(vec_traced.as_ptr() as *mut T, &shape_traced, &stride_traced);
     let cfg = TblisAddCfgBuilder::default().beta(T::zero()).build().unwrap();
-    crate::tensor_ops::tblis_tensor_add(tsr_prev, subscript_prev, &mut tsr_traced, &subscript_traced, Some(cfg));
+    unsafe { tblis_tensor_add(tsr_prev, subscript_prev, &mut tsr_traced, &subscript_traced, Some(cfg)) };
     Ok((vec_traced, tsr_traced))
 }
 
-pub fn tblis_einsum<T>(
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_einsum<T>(
     subscripts: &str,
     operands: &[&TblisTensor<T>],
     optimize: impl PathOptimizer,
@@ -121,11 +124,14 @@ pub fn tblis_einsum<T>(
 where
     T: TblisFloatAPI,
 {
-    tblis_einsum_f(subscripts, operands, optimize, memory_limit, row_major, out_tblis_tensor).unwrap()
+    unsafe { tblis_einsum_f(subscripts, operands, optimize, memory_limit, row_major, out_tblis_tensor).unwrap() }
 }
 
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
 #[allow(clippy::type_complexity)]
-pub fn tblis_einsum_f<T>(
+pub unsafe fn tblis_einsum_f<T>(
     subscripts: &str,
     operands: &[&TblisTensor<T>],
     optimize: impl PathOptimizer,
@@ -192,8 +198,8 @@ where
             };
             // handle empty idx_a/idx_b (scalar-like operations)
             match (idx_a.is_empty(), idx_b.is_empty()) {
-                (false, false) => {
-                    crate::tensor_ops::tblis_tensor_mult(tsr_a, &idx_a, tsr_b, &idx_b, &mut tsr_c, idx_c, None);
+                (false, false) => unsafe {
+                    tblis_tensor_mult(tsr_a, &idx_a, tsr_b, &idx_b, &mut tsr_c, idx_c, None);
                 },
                 (true, true) => {
                     let val_a = tsr_a.clone().set_scalar(T::one()).to_scalar()?;
@@ -203,12 +209,12 @@ where
                 (true, false) => {
                     let val_a = tsr_a.clone().set_scalar(T::one()).to_scalar()?;
                     let add_cfg = TblisAddCfgBuilder::default().alpha(val_a).beta(T::zero()).build().unwrap();
-                    crate::tensor_ops::tblis_tensor_add(tsr_b, &idx_b, &mut tsr_c, idx_c, Some(add_cfg));
+                    unsafe { tblis_tensor_add(tsr_b, &idx_b, &mut tsr_c, idx_c, Some(add_cfg)) };
                 },
                 (false, true) => {
                     let val_b = tsr_b.clone().set_scalar(T::one()).to_scalar()?;
                     let add_cfg = TblisAddCfgBuilder::default().alpha(val_b).beta(T::zero()).build().unwrap();
-                    crate::tensor_ops::tblis_tensor_add(tsr_a, &idx_a, &mut tsr_c, idx_c, Some(add_cfg));
+                    unsafe { tblis_tensor_add(tsr_a, &idx_a, &mut tsr_c, idx_c, Some(add_cfg)) };
                 },
             };
             tensor_list.push((tsr_c, vec_c));
@@ -220,7 +226,7 @@ where
             let stride_c = shape_to_stride(shape_c, row_major);
             let mut tsr_c = TblisTensor::new(vec_c.as_ptr() as *mut T, shape_c, &stride_c);
             let cfg = TblisAddCfgBuilder::default().beta(T::zero()).build().unwrap();
-            crate::tensor_ops::tblis_tensor_add(tsr_a, idx_a, &mut tsr_c, idx_c, Some(cfg));
+            unsafe { tblis_tensor_add(tsr_a, idx_a, &mut tsr_c, idx_c, Some(cfg)) };
             tensor_list.push((tsr_c, Some(vec_c)));
         }
         // remove used tensors
@@ -311,14 +317,16 @@ mod test_ndarray_workable {
 
             // generate operands and perform contraction
             let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
-            let out_g = tblis_einsum(
-                "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
-                &operands,                // tensors to be contracted
-                "optimal",                // contraction strategy (see crate opt-einsum-path)
-                None,                     // memory limit (None means no limit, see crate opt-einsum-path)
-                true,                     // row-major (true) or col-major (false)
-                None,                     // pre-allocated output tensor (None to allocate internally)
-            );
+            let out_g = unsafe {
+                tblis_einsum(
+                    "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+                    &operands,                // tensors to be contracted
+                    "optimal",                // contraction strategy (see crate opt-einsum-path)
+                    None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+                    true,                     // row-major (true) or col-major (false)
+                    None,                     // pre-allocated output tensor (None to allocate internally)
+                )
+            };
             let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
 
             // transform tblis object back to ndarray object

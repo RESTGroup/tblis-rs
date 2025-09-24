@@ -67,14 +67,16 @@ fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
 
     // generate operands and perform contraction
     let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
-    let out_g = tblis_einsum(
-        "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
-        &operands,                // tensors to be contracted
-        "optimal",                // contraction strategy (see crate opt-einsum-path)
-        None,                     // memory limit (None means no limit, see crate opt-einsum-path)
-        true,                     // row-major (true) or col-major (false)
-        None,                     // pre-allocated output tensor (None to allocate internally)
-    );
+    let out_g = unsafe {
+        tblis_einsum(
+            "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+            &operands,                // tensors to be contracted
+            "optimal",                // contraction strategy (see crate opt-einsum-path)
+            None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+            true,                     // row-major (true) or col-major (false)
+            None,                     // pre-allocated output tensor (None to allocate internally)
+        )
+    };
     let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
 
     // transform tblis object back to ndarray object
@@ -110,14 +112,16 @@ fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
 
     // generate operands and perform contraction
     let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
-    let out_g = tblis_einsum(
-        "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
-        &operands,                // tensors to be contracted
-        "optimal",                // contraction strategy (see crate opt-einsum-path)
-        None,                     // memory limit (None means no limit, see crate opt-einsum-path)
-        true,                     // row-major (true) or col-major (false)
-        None,                     // pre-allocated output tensor (None to allocate internally)
-    );
+    let out_g = unsafe {
+        tblis_einsum(
+            "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+            &operands,                // tensors to be contracted
+            "optimal",                // contraction strategy (see crate opt-einsum-path)
+            None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+            true,                     // row-major (true) or col-major (false)
+            None,                     // pre-allocated output tensor (None to allocate internally)
+        )
+    };
     let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
 
     // transform tblis object back to ndarray object
