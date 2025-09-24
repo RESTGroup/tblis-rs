@@ -38,9 +38,11 @@ This crate is not official wrapper project. It is originally intended to serve r
 ## Example
 
 The following example is to perform contraction:
+
 $$
 G_{pqrs} = \sum_{\mu \nu \kappa \lambda} C_{\mu p} C_{\nu q} E_{\mu \nu \kappa \lambda} C_{\kappa r} C_{\lambda s}
 $$
+
 This tensor contraction is utilized in electronic structure (electronic integral in atomic orbital basis $E_{\mu \nu \kappa \lambda}$ to molecular orbital basis $G_{pqrs}$).
 
 To run the following code, you may need to
