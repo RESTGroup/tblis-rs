@@ -133,7 +133,7 @@ where
     let vec_traced = unsafe { crate::alloc_vec::uninitialized_vec::<T>(size_traced)? };
     let mut tsr_traced = TblisTensor::new(vec_traced.as_ptr() as *mut T, &shape_traced, &stride_traced);
     let cfg = TblisAddCfgBuilder::default().beta(T::zero()).build().unwrap();
-    unsafe { tblis_tensor_add(tsr_prev, subscript_prev, &mut tsr_traced, &subscript_traced, Some(cfg)) };
+    unsafe { tblis_tensor_add_f(tsr_prev, subscript_prev, &mut tsr_traced, &subscript_traced, Some(cfg))? };
     Ok((vec_traced, tsr_traced))
 }
 
@@ -350,7 +350,7 @@ where
             // handle empty idx_a/idx_b (scalar-like operations)
             match (idx_a.is_empty(), idx_b.is_empty()) {
                 (false, false) => unsafe {
-                    tblis_tensor_mult(tsr_a, &idx_a, tsr_b, &idx_b, &mut tsr_c, idx_c, None);
+                    tblis_tensor_mult_f(tsr_a, &idx_a, tsr_b, &idx_b, &mut tsr_c, idx_c, None)?;
                 },
                 (true, true) => {
                     let val_a = tsr_a.clone().set_scalar(T::one()).to_scalar()?;
@@ -360,12 +360,12 @@ where
                 (true, false) => {
                     let val_a = tsr_a.clone().set_scalar(T::one()).to_scalar()?;
                     let add_cfg = TblisAddCfgBuilder::default().alpha(val_a).beta(T::zero()).build().unwrap();
-                    unsafe { tblis_tensor_add(tsr_b, &idx_b, &mut tsr_c, idx_c, Some(add_cfg)) };
+                    unsafe { tblis_tensor_add_f(tsr_b, &idx_b, &mut tsr_c, idx_c, Some(add_cfg))? };
                 },
                 (false, true) => {
                     let val_b = tsr_b.clone().set_scalar(T::one()).to_scalar()?;
                     let add_cfg = TblisAddCfgBuilder::default().alpha(val_b).beta(T::zero()).build().unwrap();
-                    unsafe { tblis_tensor_add(tsr_a, &idx_a, &mut tsr_c, idx_c, Some(add_cfg)) };
+                    unsafe { tblis_tensor_add_f(tsr_a, &idx_a, &mut tsr_c, idx_c, Some(add_cfg))? };
                 },
             };
             tensor_list.push((tsr_c, vec_c));
@@ -377,7 +377,7 @@ where
             let stride_c = shape_to_stride(shape_c, row_major);
             let mut tsr_c = TblisTensor::new(vec_c.as_ptr() as *mut T, shape_c, &stride_c);
             let cfg = TblisAddCfgBuilder::default().beta(T::zero()).build().unwrap();
-            unsafe { tblis_tensor_add(tsr_a, idx_a, &mut tsr_c, idx_c, Some(cfg)) };
+            unsafe { tblis_tensor_add_f(tsr_a, idx_a, &mut tsr_c, idx_c, Some(cfg))? };
             tensor_list.push((tsr_c, Some(vec_c)));
         }
         // remove used tensors

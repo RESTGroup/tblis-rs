@@ -32,7 +32,7 @@
 //! | [`tblis_tensor_scale`] | (1t-level) $A = \alpha A$ |
 //! | [`tblis_tensor_set`] | (1t-level) $A = \alpha$ |
 //! | [`tblis_tensor_shift`] | (1t-level) $A = \alpha + \beta A$ |
-//! | [`tblis_tensor_reduce`] | (1t-level) $\gamma = op(A)$ |
+//! | [`tblis_tensor_reduce`] | (1t-level) $\gamma = \mathrm{op}(A)$ |
 //! | [`tblis_tensor_dot`] | (1t-level) $\gamma = A B$ |
 //! | [`tblis_tensor_mult`] | (3t-level) $C = \alpha A B + \beta C$ |
 //!

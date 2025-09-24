@@ -5,8 +5,13 @@ use duplicate::duplicate_item;
 use num::Complex;
 use num::complex::ComplexFloat;
 
+/// Float trait for TBLIS operations (f32, f64, c32, c64).
+///
+/// Note that this trait only inplements for [`f32`], [`f64`], [`Complex<f32>`], [`Complex<f64>`].
 pub trait TblisFloatAPI: ComplexFloat {
+    /// TBLIS constant indicating type in FFI.
     const TYPE: tblis_ffi::tblis::type_t;
+    /// Convert to scalar type of TBLIS FFI.
     fn to_ffi_scalar(&self) -> tblis_ffi::tblis::tblis_scalar;
 }
 
