@@ -11,8 +11,11 @@ fn build_tblis() {
 
     // TBLIS build both static and shared by default
     if cfg!(feature = "build_from_source") {
-        let dst =
-            cmake::Config::new("external_deps").define("TBLIS_SRC", tblis_src).define("TBLIS_VER", tblis_ver).build();
+        let dst = cmake::Config::new("external_deps")
+            .define("TBLIS_SRC", tblis_src)
+            .define("TBLIS_VER", tblis_ver)
+            .define("CMAKE_BUILD_TYPE", "Release")
+            .build();
         // CMAKE_INSTALL_LIBDIR can be lib64 on some platforms
         println!("cargo:rustc-link-search=native={}/lib", dst.display());
         println!("cargo:rustc-link-search=native={}/lib64", dst.display());
