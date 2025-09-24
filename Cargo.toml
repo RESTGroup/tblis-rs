@@ -22,3 +22,7 @@ derive_builder = { version = "0.20" }
 opt-einsum-path = { version = "0.1" }
 ndarray = { version = ">=0.15, <0.17" }
 rstest = { version = "0.26" }
+rayon = { version = "1.11" }
+
+[profile.dev]
+opt-level = 2

@@ -120,21 +120,22 @@ fn check_size_dict(subscripts: &[&str], shapes: &[&[isize]]) -> Result<BTreeMap<
         return Err(format!("Number of subscripts and shapes do not match: {} vs {}", subscripts.len(), shapes.len()));
     }
     for (subscript, shape) in subscripts.iter().zip(shapes.iter()) {
+        let subscript = subscript.chars().collect::<Vec<char>>();
         if subscript.len() != shape.len() {
-            return Err(format!("Subscript length and shape length do not match: {subscript} vs {shape:?}"));
+            return Err(format!("Subscript length and shape length do not match: {subscript:?} vs {shape:?}"));
         }
-        for (c, &s) in subscript.chars().zip(shape.iter()) {
+        for (c, &s) in subscript.iter().zip(shape.iter()) {
             if s < 0 {
-                return Err(format!("Invalid dimension size {s} for index {c} in subscript {subscript}"));
+                return Err(format!("Invalid dimension size {s} for index {c} in subscript {subscript:?}"));
             }
-            if let Some(&existing) = size_dict.get(&c) {
+            if let Some(&existing) = size_dict.get(c) {
                 if existing != s {
                     return Err(format!(
-                        "Inconsistent dimension size for index {c}: {existing} vs {s} in subscript {subscript}"
+                        "Inconsistent dimension size for index {c}: {existing} vs {s} in subscript {subscript:?}"
                     ));
                 }
             } else {
-                size_dict.insert(c, s);
+                size_dict.insert(*c, s);
             }
         }
     }
@@ -434,9 +435,9 @@ where
     let chk_ab = &chk_a & &chk_b;
     let chk_ac = &chk_a & &chk_c;
     let chk_bc = &chk_b & &chk_c;
-    let chk_a_only = &chk_a - &(&chk_ab & &chk_ac);
-    let chk_b_only = &chk_b - &(&chk_ab & &chk_bc);
-    let chk_c_only = &chk_c - &(&chk_ac & &chk_bc);
+    let chk_a_only = &chk_a - &(&chk_ab | &chk_ac);
+    let chk_b_only = &chk_b - &(&chk_ab | &chk_bc);
+    let chk_c_only = &chk_c - &(&chk_ac | &chk_bc);
     if !chk_a_only.is_empty() || !chk_b_only.is_empty() || !chk_c_only.is_empty() {
         return Err(format!(
             "tblis_tensor_mult: Unique indices is not allowed. Input and unique indices: a ({idx_a}): {chk_a_only:?}, b ({idx_b}): {chk_b_only:?}, c ({idx_c}): {chk_c_only:?}"
