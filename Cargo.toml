@@ -20,5 +20,5 @@ cmake = { version = "0.1" }
 duplicate = { version = "2.0" }
 derive_builder = { version = "0.20" }
 opt-einsum-path = { version = "0.1" }
-ndarray = { version = "0.16" }
+ndarray = { version = ">=0.15, <0.17" }
 rstest = { version = "0.26" }

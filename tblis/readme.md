@@ -134,3 +134,62 @@ Optional features:
 
 - `ndarray`: Supports conversion from ndarray objects (`Array`, `ArrayView`, `ArrayMut`) to `TblisTensor`; conversion from `TblisTensor` to ndarray object (`ArrayD`).
 - `dynamic_loading`: Supports dynamic loading (for dependency crate tblis-ffi).
+
+## Installation (linkage to `libtblis.so`)
+
+If you wish using dynamic loading (instead of dynamic/static linking), refer to the next subsection "Dynamic loading".
+
+You can either
+- link library `tblis` manually
+- use cargo crate [tblis-src](https://docs.rs/tblis-src) with pre-built libtblis.so
+- use cargo crate [tblis-src](https://docs.rs/tblis-src) and build-from-source
+
+### Link library `tblis` manually
+
+By this way, you can directly use cargo crate [tblis](https://docs.rs/tblis) or [tblis-ffi](https://docs.rs/tblis-ffi), without using [tblis-src](https://docs.rs/tblis-src).
+
+It is recommended to link `libtblis.so` by dynamic linking. Making sure your library is in environment variable `LD_LIBRARY_PATH`, then
+
+```rust
+// build.rs
+println!("cargo:rustc-link-lib=static=tblis");
+```
+
+### Use cargo crate [tblis-src](https://docs.rs/tblis-src) with pre-built libtblis.so
+
+By this way, you need to add `tblis-src` as Cargo.toml dependency:
+
+```toml
+tblis-src = { version = "0.1" }
+```
+
+and then export this crate in your lib.rs/main.rs:
+
+```rust
+extern crate tblis-src;
+```
+
+### Use cargo crate [tblis-src](https://docs.rs/tblis-src) and build-from-source
+
+You can use crago feature `build_from_source` to automatically build TBLIS with default configuration.
+
+cargo crate [tblis-src](https://docs.rs/tblis-src) has the following cargo features:
+
+- **`build_from_source`**: This will use CMake (cmake > 3.23, c++20 standard), and use the code from git submodule to compile tblis. Though this option can be developer-friendly (you do not need to perform any other configurations to make program compile and run by cargo), `build_from_source` does not provide customized compilation.
+
+    CMake configurable variables (can be defined as environment variables):
+    - `TBLIS_SRC`: Git repository source directory or URL. All git submodules (marray, blis, tci) should be properly downloaded.
+    - `TBLIS_VER`: Git repository version (branch or tag). Default to be `develop`.
+
+- **`static`**: This will link static libary instead of dynamic one. Please note that static linking may require additional dynamic library linking, which should be configured manually by developer in `build.rs` or environment variables `RUSTFLAGS`. Static linking can be difficult when searching symbols, and we recommend dynamic linking in most cases.
+
+## Dynamic loading
+
+This crate supports dynamic loading.
+
+If you want to use dynamic loading, please enable cargo feature `dynamic_loading` when cargo build.
+
+The dynamic loading will try to find proper library when your program initializes.
+- This crate will automatically detect proper libraries, if these libraries are in environmental path `LD_LIBRARY_PATH` (Linux) `DYLD_LIBRARY_PATH` (Mac OS), `PATH` (Windows).
+- If you want to override the library to be loaded, please set these shell environmental variable `RSTSR_DYLOAD_TBLIS` to the dynamic library path.
+
