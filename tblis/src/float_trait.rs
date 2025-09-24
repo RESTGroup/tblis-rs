@@ -2,8 +2,8 @@
 
 // use crate::prelude::*;
 use duplicate::duplicate_item;
-use num::Complex;
 use num::complex::ComplexFloat;
+use num::Complex;
 
 /// Float trait for TBLIS operations (f32, f64, c32, c64).
 ///
