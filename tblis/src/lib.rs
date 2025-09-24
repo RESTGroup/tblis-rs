@@ -2,6 +2,11 @@
 //!
 //! # API Documentation Summary
 //!
+//! ## About safety
+//!
+//! Most functions in this crate are marked as `unsafe` because they do not check the validity of
+//! tensor data and mutability.
+//!
 //! ## About function [`tblis_einsum`]
 //!
 //! This is the most important function of this crate.
