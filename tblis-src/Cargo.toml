@@ -2,6 +2,7 @@
 name = "tblis-src"
 description = "Crate for TBLIS Source Code"
 readme = "readme.md"
+rust-version = "1.78"
 
 edition.workspace = true
 version.workspace = true

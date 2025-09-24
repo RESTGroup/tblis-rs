@@ -2,6 +2,7 @@
 name = "tblis"
 description = "TBLIS wrapper in Rust"
 readme = "readme.md"
+rust-version = "1.82"
 
 edition.workspace = true
 version.workspace = true

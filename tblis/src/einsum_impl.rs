@@ -4,7 +4,7 @@
 
 use crate::prelude::*;
 use opt_einsum_path::typing::{ContractionType, SizeLimitType, TensorShapeType};
-use opt_einsum_path::{PathOptimizer, contract_path};
+use opt_einsum_path::{contract_path, PathOptimizer};
 use std::collections::BTreeSet;
 
 /// (dev-only) Intermediate representation of einsum contraction step.
@@ -332,13 +332,22 @@ where
             let tsr_a = &tensor_list[indices[0]].0;
             let tsr_b = &tensor_list[indices[1]].0;
             let is_last_step = idx_step == num_steps - 1;
-            let (vec_c, mut tsr_c) = if is_last_step && let Some(ref out_tblis_tensor) = out_tblis_tensor {
-                // final tensor with pre-allocated space
-                let tsr_c = out_tblis_tensor;
-                if tsr_c.shape != *shape_c {
-                    return Err("Output tensor shape mismatch.".to_string());
+            let (vec_c, mut tsr_c) = if is_last_step {
+                if let Some(ref out_tblis_tensor) = out_tblis_tensor {
+                    // final tensor with pre-allocated space
+                    let tsr_c = out_tblis_tensor;
+                    if tsr_c.shape != *shape_c {
+                        return Err("Output tensor shape mismatch.".to_string());
+                    }
+                    (None, (*tsr_c).clone())
+                } else {
+                    // intermediate tensor or final tensor without pre-allocated space
+                    let size_c = shape_c.iter().product::<isize>() as usize;
+                    let vec_c = unsafe { crate::alloc_vec::uninitialized_vec::<T>(size_c)? };
+                    let stride_c = shape_to_stride(shape_c, row_major);
+                    let tsr_c = TblisTensor::new(vec_c.as_ptr() as *mut T, shape_c, &stride_c);
+                    (Some(vec_c), tsr_c)
                 }
-                (None, (*tsr_c).clone())
             } else {
                 // intermediate tensor or final tensor without pre-allocated space
                 let size_c = shape_c.iter().product::<isize>() as usize;
@@ -389,7 +398,11 @@ where
     }
     assert!(tensor_list.len() == 1);
     let (tsr, vec_opt) = tensor_list.pop().unwrap();
-    if let Some(vec) = vec_opt { Ok(Some((vec, tsr))) } else { Err("Final tensor does not own its data.".to_string()) }
+    if let Some(vec) = vec_opt {
+        Ok(Some((vec, tsr)))
+    } else {
+        Err("Final tensor does not own its data.".to_string())
+    }
 }
 
 #[cfg(feature = "ndarray")]

@@ -3,8 +3,8 @@ resolver = "2"
 members = ["tblis-ffi", "tblis-src", "tblis"]
 
 [workspace.package]
-edition = "2024"
-version = "0.1.4"
+edition = "2021"
+version = "0.2.0"
 description = "TBLIS FFI bindings, wrappers and build-from-source"
 repository = "https://github.com/RESTGroup/tblis-rs"
 keywords = ["ffi", "chemistry", "tensor"]
@@ -12,14 +12,14 @@ categories = ["science"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
-tblis-ffi = { path = "./tblis-ffi", version = "0.1.4" }
-tblis-src = { path = "./tblis-src", version = "0.1.4" }
+tblis-ffi = { path = "./tblis-ffi", version = "0.2.0" }
+tblis-src = { path = "./tblis-src", version = "0.2.0" }
 num = { version = "0.4" }
 libloading = { version = "0.8" }
 cmake = { version = "0.1" }
 duplicate = { version = "2.0" }
 derive_builder = { version = "0.20" }
-opt-einsum-path = { version = "0.1" }
+opt-einsum-path = { version = "0.2" }
 ndarray = { version = ">=0.15, <0.17" }
 rstest = { version = "0.26" }
 rayon = { version = "1.11" }

@@ -2,6 +2,7 @@
 name = "tblis-ffi"
 description = "FFI bindings of TBLIS"
 readme = "readme.md"
+rust-version = "1.82"
 
 edition.workspace = true
 version.workspace = true
