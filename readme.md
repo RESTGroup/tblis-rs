@@ -35,6 +35,7 @@ We refer the readme file of crate [tblis](tblis/readme.md) (Minimal wrapper), [t
 - [Why TBLIS?](#why-tblis)
     - [Benchmark of contiguous case](#benchmark-of-contiguous-case)
     - [Benchmark of strided case](#benchmark-of-strided-case)
+- [Citation](#citation)
 - [Miscellaneous](#miscellaneous)
 
 ## Example
@@ -205,6 +206,18 @@ As an example, some benchmarks on my personal computer (AMD Ryzen 7945HX, estima
 | `axyz, ybzx -> ab`   | complicated GEMM            | $2 n^5$ | **144.7 msec<br>105 GFLOP/sec** |   725.0 msec<br> 21 GFLOP/sec   |   406.7 msec<br> 37 GFLOP/sec   |
 | `axby, yacx -> abc`  | batched complicated GEMM    | $2 n^5$ | **142.7 msec<br>106 GFLOP/sec** |    27.1  sec<br>0.6 GFLOP/sec   |   263.6 msec<br> 58 GFLOP/sec   |
 | `xpay, aybx -> ab`   | trace then complicated GEMM | $2 n^4$ |   232.3 msec<br>0.7 GFLOP/sec   |   248.5  sec<br>0.0 GFLOP/sec   | **147.3 msec<br>1.1 GFLOP/sec** |
+
+## Citation
+
+TBLIS for Rust is not the original work of [TBLIS](https://github.com/MatthewsResearchGroup/tblis).
+
+Please cite TBLIS as:
+
+> Matthews, D. A. High-Performance Tensor Contraction without Transposition. *SIAM J. Sci. Comput.* **2018**, *40* (1), C1–C24. DOI: [10.1137/16M108968X](https://doi.org/10.1137/16M108968X). arXiv: [1607.00291](https://arxiv.org/abs/1607.00291).
+
+Related work is:
+
+> Huang, J.; Matthews, D. A.; van de Geijn, R. A. Strassen’s Algorithm for Tensor Contraction. *SIAM J. Sci. Comput.* **2018**, *40* (3), C305–C326. DOI: [10.1137/17M1135578](https://doi.org/10.1137/17M1135578). arXiv: [1704.03092](https://arxiv.org/abs/1704.03092).
 
 ## Miscellaneous
 
