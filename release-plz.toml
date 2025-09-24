@@ -1,0 +1,6 @@
+[workspace]
+git_release_enable = false
+
+[[package]]
+name = "tblis"
+git_release_enable = true
