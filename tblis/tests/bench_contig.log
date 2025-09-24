@@ -1,0 +1,18 @@
+Subscripts: abxy, xycd -> abcd
+elapsed time: 1.903524s    (avg of  5 repeats)
+fingerprint : -19471467.265266425908
+Subscripts: axyz, xyzb -> ab
+elapsed time: 132.313657ms (avg of 20 repeats)
+fingerprint :      48.288443230387
+Subscripts: axyz, bxyz -> ab
+elapsed time: 96.876300ms  (avg of 20 repeats)
+fingerprint : -217920.505846074084
+Subscripts: axyz, ybzx -> ab
+elapsed time: 120.674422ms (avg of 20 repeats)
+fingerprint :       2.131216642224
+Subscripts: axby, yacx -> abc
+elapsed time: 124.096440ms (avg of 20 repeats)
+fingerprint :    -134.741201125063
+Subscripts: xpay, aybx -> ab
+elapsed time: 36.410220ms  (avg of 20 repeats)
+fingerprint :       4.640285999005
