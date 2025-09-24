@@ -24,5 +24,5 @@ It is recommended to link `libtblis.so` by dynamic linking. Making sure your lib
 
 ```rust
 // build.rs
-println!("cargo:rustc-link-lib=static=tblis");
+println!("cargo:rustc-link-lib=tblis");
 ```
