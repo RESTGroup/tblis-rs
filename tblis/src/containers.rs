@@ -9,6 +9,8 @@ use core::ffi::c_int;
 ///
 /// This struct is a (somehow) safe wrapper of `tblis_ffi::tblis::tblis_tensor`.
 ///
+/// # Fields
+///
 /// - `data` is a raw pointer to the data. It is defined as mutable for simplicity. It is not safe
 ///   to access directly.
 /// - `shape` is a vector of dimensions. Though we do not allow zero/negative dimensions, the type
@@ -18,6 +20,12 @@ use core::ffi::c_int;
 /// - `conj` indicates whether the tensor is to be conjugated during operation. By default it is
 ///   false.
 /// - `scalar` is a scalar multiplier applied to the tensor during operation. By default it is one.
+///
+/// # Notes
+///
+/// - This struct does not own the data. The user must ensure that the data lives long enough.
+/// - Clone this struct will only clone the metadata, not the data itself. Should be cheap to clone.
+/// - You can implement [`ToTblisTensor`] for your own tensor types to convert to this struct.
 #[derive(Debug, Clone)]
 pub struct TblisTensor<T>
 where
