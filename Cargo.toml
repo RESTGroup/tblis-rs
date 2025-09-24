@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["tblis-ffi", "tblis", "tblis-src"]
+members = ["tblis-ffi", "tblis-src", "tblis"]
 
 [workspace.package]
 edition = "2024"
