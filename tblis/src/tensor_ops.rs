@@ -115,7 +115,10 @@ impl Default for TblisZeroCfg {
 pub use TblisBiCfg as TblisAddCfg;
 pub use TblisBiCfgBuilder as TblisAddCfgBuilder;
 
-pub fn tblis_tensor_add<T>(
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_add<T>(
     a: &TblisTensor<T>,
     idx_a: &str,
     b: &mut TblisTensor<T>,
@@ -147,7 +150,10 @@ pub fn tblis_tensor_add<T>(
 pub use TblisBiCfg as TblisDotCfg;
 pub use TblisBiCfgBuilder as TblisDotCfgBuilder;
 
-pub fn tblis_tensor_dot<T>(
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_dot<T>(
     a: &TblisTensor<T>,
     idx_a: &str,
     b: &TblisTensor<T>,
@@ -191,7 +197,10 @@ where
 pub use TblisTriCfg as TblisMultCfg;
 pub use TblisTriCfgBuilder as TblisMultCfgBuilder;
 
-pub fn tblis_tensor_mult<T>(
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_mult<T>(
     a: &TblisTensor<T>,
     idx_a: &str,
     b: &TblisTensor<T>,
@@ -289,7 +298,15 @@ impl From<TblisReduceOp> for tblis_ffi::tblis::reduce_t {
 pub use TblisUniCfg as TblisReduceCfg;
 pub use TblisUniCfgBuilder as TblisReduceCfgBuilder;
 
-pub fn tblis_tensor_reduce<T>(a: &TblisTensor<T>, idx_a: &str, op: TblisReduceOp, cfg: Option<TblisReduceCfg<T>>) -> T
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_reduce<T>(
+    a: &TblisTensor<T>,
+    idx_a: &str,
+    op: TblisReduceOp,
+    cfg: Option<TblisReduceCfg<T>>,
+) -> T
 where
     T: TblisFloatAPI,
 {
@@ -325,7 +342,10 @@ where
 pub use TblisUniCfg as TblisScaleCfg;
 pub use TblisUniCfgBuilder as TblisScaleCfgBuilder;
 
-pub fn tblis_tensor_scale<T>(a: &mut TblisTensor<T>, idx_a: &str, cfg: Option<TblisScaleCfg<T>>)
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_scale<T>(a: &mut TblisTensor<T>, idx_a: &str, cfg: Option<TblisScaleCfg<T>>)
 where
     T: TblisFloatAPI,
 {
@@ -348,7 +368,10 @@ where
 pub use TblisZeroCfg as TblisSetCfg;
 pub use TblisZeroCfgBuilder as TblisSetCfgBuilder;
 
-pub fn tblis_tensor_set<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisSetCfg>)
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_set<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisSetCfg>)
 where
     T: TblisFloatAPI,
 {
@@ -368,7 +391,10 @@ where
 pub use TblisUniCfg as TblisShiftCfg;
 pub use TblisUniCfgBuilder as TblisShiftCfgBuilder;
 
-pub fn tblis_tensor_shift<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisShiftCfg<T>>)
+/// # Safety
+///
+/// - This function does not check tensor data validity and mutability.
+pub unsafe fn tblis_tensor_shift<T>(a: &mut TblisTensor<T>, idx_a: &str, alpha: T, cfg: Option<TblisShiftCfg<T>>)
 where
     T: TblisFloatAPI,
 {
