@@ -9,14 +9,21 @@ mod tests {
         let mut data_b = [0.0f64; 7 * 5 * 9 * 8];
         let mut data_c = [0.0f64; 7 * 2 * 10 * 8];
 
+        let mut len_a = [10, 9, 2, 5];
+        let mut len_b = [7, 5, 9, 8];
+        let mut len_c = [7, 2, 10, 8];
+        let mut stride_a = [1, 10, 90, 180];
+        let mut stride_b = [1, 7, 35, 315];
+        let mut stride_c = [1, 7, 14, 140];
+
         let a = tblis_tensor {
             type_: TYPE_DOUBLE,
             conj: 0,
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 0.0 }, type_: TYPE_DOUBLE },
             data: data_a.as_mut_ptr() as *mut _,
             ndim: 4,
-            len: [10, 9, 2, 5].as_mut_ptr(),
-            stride: [1, 10, 90, 180].as_mut_ptr(),
+            len: len_a.as_mut_ptr(),
+            stride: stride_a.as_mut_ptr(),
         };
 
         let b = tblis_tensor {
@@ -25,8 +32,8 @@ mod tests {
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 0.0 }, type_: TYPE_DOUBLE },
             data: data_b.as_mut_ptr() as *mut _,
             ndim: 4,
-            len: [7, 5, 9, 8].as_mut_ptr(),
-            stride: [1, 7, 35, 315].as_mut_ptr(),
+            len: len_b.as_mut_ptr(),
+            stride: stride_b.as_mut_ptr(),
         };
 
         let mut c = tblis_tensor {
@@ -35,8 +42,8 @@ mod tests {
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 0.0 }, type_: TYPE_DOUBLE },
             data: data_c.as_mut_ptr() as *mut _,
             ndim: 4,
-            len: [7, 2, 10, 8].as_mut_ptr(),
-            stride: [1, 7, 14, 140].as_mut_ptr(),
+            len: len_c.as_mut_ptr(),
+            stride: stride_c.as_mut_ptr(),
         };
 
         unsafe {
@@ -85,14 +92,17 @@ mod tests {
         let data_b: Vec<f64> = vec![5.0, 6.0, 7.0, 8.0];
         let mut data_c: Vec<f64> = vec![0.0; 4];
 
+        let mut len = [2, 2];
+        let mut stride = [2, 1];
+
         let a = tblis_tensor {
             type_: TYPE_DOUBLE,
             conj: 0,
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 1.0 }, type_: TYPE_DOUBLE },
             data: data_a.as_ptr() as *mut _,
             ndim: 2,
-            len: [2, 2].as_mut_ptr(),
-            stride: [2, 1].as_mut_ptr(),
+            len: len.as_mut_ptr(),
+            stride: stride.as_mut_ptr(),
         };
 
         let b = tblis_tensor {
@@ -101,8 +111,8 @@ mod tests {
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 1.0 }, type_: TYPE_DOUBLE },
             data: data_b.as_ptr() as *mut _,
             ndim: 2,
-            len: [2, 2].as_mut_ptr(),
-            stride: [2, 1].as_mut_ptr(),
+            len: len.as_mut_ptr(),
+            stride: stride.as_mut_ptr(),
         };
 
         let mut c = tblis_tensor {
@@ -111,8 +121,8 @@ mod tests {
             scalar: tblis_scalar { data: tblis_scalar_scalar { d: 1.0 }, type_: TYPE_DOUBLE },
             data: data_c.as_mut_ptr() as *mut _,
             ndim: 2,
-            len: [2, 2].as_mut_ptr(),
-            stride: [2, 1].as_mut_ptr(),
+            len: len.as_mut_ptr(),
+            stride: stride.as_mut_ptr(),
         };
 
         unsafe {
