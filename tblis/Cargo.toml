@@ -21,6 +21,7 @@ ndarray = { workspace = true, optional = true }
 [dev-dependencies]
 rstest = { workspace = true }
 tblis-src = { workspace = true }
+rayon = { workspace = true }
 
 [features]
 default = []
