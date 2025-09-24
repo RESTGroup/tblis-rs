@@ -7,6 +7,14 @@ use opt_einsum_path::typing::{ContractionType, SizeLimitType, TensorShapeType};
 use opt_einsum_path::{PathOptimizer, contract_path};
 use std::collections::BTreeSet;
 
+/// (dev-only) Intermediate representation of einsum contraction step.
+///
+/// This is used to represent each contraction step in the optimized contraction path.
+/// - `indices`: indices (step of a path) of tensors involved in this contraction step.
+/// - `idx_a`: einsum subscript of the first tensor.
+/// - `idx_b`: einsum subscript of the second tensor (None for single tensor operations).
+/// - `idx_c`: einsum subscript of the output tensor.
+/// - `shape_c`: shape of the output tensor.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TblisContractStep {
     pub indices: Vec<usize>,
@@ -16,6 +24,17 @@ pub struct TblisContractStep {
     pub shape_c: Vec<isize>,
 }
 
+/// (dev-only) Prepare einsum contraction steps for TBLIS internally from output of
+/// [opt_einsum_path::contract_path].
+///
+/// # Panics
+///
+/// A single step in contraction involves more than two tensors. This is not supported in TBLIS
+/// (TBLIS only supports trace/scale/set of one tensor, and add/mult for two tensors).
+///
+/// # See also
+///
+/// [`tblis_einsum_prep_f`] for fallible version.
 pub fn tblis_einsum_prep(
     subscripts: &str,
     operands: &[TensorShapeType],
@@ -25,6 +44,12 @@ pub fn tblis_einsum_prep(
     tblis_einsum_prep_f(subscripts, operands, optimize, memory_limit).unwrap()
 }
 
+/// (dev-only) Prepare einsum contraction steps for TBLIS internally from output of
+/// [opt_einsum_path::contract_path].
+///
+/// # See also
+///
+/// [`tblis_einsum_prep`] for non-fallible version.
 pub fn tblis_einsum_prep_f(
     subscripts: &str,
     operands: &[TensorShapeType],
@@ -81,6 +106,8 @@ fn shape_to_stride(shape: &[isize], row_major: bool) -> Vec<isize> {
     stride
 }
 
+/// Perform trace operation on a tensor. This can be used when [`tblis_tensor_mult`] could not
+/// handle the case where `idx_a` or `idx_b` contains redundant indices.
 fn tblis_trace_f<T>(
     subscript_prev: &str,
     subscript_traced: &str,
@@ -110,9 +137,127 @@ where
     Ok((vec_traced, tsr_traced))
 }
 
+/// Perform einsum operation using TBLIS.
+///
+/// # Parameters
+///
+/// - `subscripts`: einsum subscripts, e.g. `"ij,jk->ik"`.
+/// - `operands`: list of input tensors (see [`TblisTensor`] for data structure and
+///   [`ToTblisTensor`] for conversion trait).
+/// - `optimize`: contraction path optimization strategy (see [`opt_einsum_path::contract_path`]).
+/// - `memory_limit`: memory limit for contraction path optimization (see
+///   [`opt_einsum_path::contract_path`]).
+/// - `row_major`: whether the input/output tensors are in row-major (C-style) or col-major
+///   (Fortran-style).
+/// - `out_tblis_tensor`: pre-allocated output tensor. If `None`, the output tensor is allocated
+///   internally.
+///
+/// # Returns
+///
+/// - `Option<(Vec<T>, TblisTensor<T>)>`: If the output tensor is allocated internally, returns the
+///   allocated vector and tensor.
+/// - If the output tensor is provided, returns `None`.
+///
+/// If you activated cargo feature `ndarray`, you can convert the output to [ndarray::ArrayD] by
+///
+/// ```rust
+/// use tblis::prelude::*;
+/// # use ndarray::prelude::*;
+/// # let vec_g = vec![0.0f64; 2*2*2*2]; // pre-allocated data
+/// # let tsr_g = TblisTensor::new(vec_g.as_ptr() as *mut f64, &[2,2,2,2], &[4,2,1,1]);
+/// // with predefined
+/// // - `vec_g`: `Vec<T>`
+/// // - `tsr_g`: `TblisTensor<T>`
+/// let out_g: ArrayD<_> = (vec_g, tsr_g).into_array(); // ndarray::ArrayD<T>
+/// ```
+///
+/// # Panics
+///
+/// - This function will panic if failed. Use [`tblis_einsum_f`] for fallible version.
+/// - TBLIS cannot handle a single contraction step involving more than two tensors.
+/// - [opt_einsum_path::contract_path] may fail if the subscripts and tensor shapes that user
+///   provides are invalid, or give a contraction step involving more than two tensors in strict
+///   memory limit.
+/// - This function allows non-ASCII characters in einsum subscripts, but TBLIS may panic if too
+///   many characters are used. It is recommended to use no more than 52 characters in total. It is
+///   not allowed to use more than 128 characters.
+///
+/// # Example
+///
+/// The following example is to perform contraction:
+/// $$
+/// G_{pqrs} = \sum_{\mu \nu \kappa \lambda} C_{\mu p} C_{\nu q} E_{\mu \nu \kappa \lambda}
+/// C_{\kappa r} C_{\lambda s} $$
+/// This tensor contraction is utilized in electronic structure (electronic integral in atomic
+/// orbital basis $E_{\mu \nu \kappa \lambda}$ to molecular orbital basis $G_{pqrs}$).
+///
+/// To run the following code, you may need to
+/// - activate crate feature `ndarray` to make conversion between [`ndarray::Array`],
+///   [`ndarray::ArrayView`], [`ndarray::ArrayViewMut`] and [`TblisTensor`];
+/// - properly link libtblis.so in your project (also see crate [tblis_ffi] and [tblis_src](https://docs.rs/tblis-src)
+///   for more information).
+///
+/// The following code snippet performs this contraction.
+///
+/// ```rust
+/// // Must declare crate `tblis-src` if you want link tblis dynamically.
+/// // You can also call the following code in `build.rs`, instead of using crate `tblis-src`:
+/// //     println!("cargo:rustc-link-lib=tblis");
+/// extern crate tblis_src;
+///
+/// use ndarray::prelude::*;
+/// use tblis::prelude::*;
+///
+/// // dummy setting of matrix C and tensor E
+/// let (nao, nmo): (usize, usize) = (3, 2);
+/// let vec_c: Vec<f64> = (0..nao * nmo).map(|x| x as f64).collect();
+/// let vec_e: Vec<f64> = (0..nao * nao * nao * nao).map(|x| x as f64).collect();
+///
+/// let arr_c = ArrayView2::from_shape((nao, nmo), &vec_c).unwrap();
+/// let arr_e = ArrayView4::from_shape((nao, nao, nao, nao), &vec_e).unwrap();
+///
+/// /// # Parameters
+/// /// - `arr_c`: coefficient matrix $C_{\mu p}$
+/// /// - `arr_s`: electronic integral $E_{\mu \nu \kappa \lambda}$ (in atomic orbital basis)
+/// ///
+/// /// # Returns
+/// /// - `arr_g`: electronic integral $G_{pqrs}$ (in molecular orbital basis)
+/// fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
+///     // transform ndarray objects to tblis objects
+///     let tsr_c = unsafe { arr_c.to_tblis_tensor() };
+///     let tsr_e = unsafe { arr_e.to_tblis_tensor() };
+///
+///     // generate operands and perform contraction
+///     let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
+///     let out_g = unsafe {
+///         tblis_einsum(
+///             "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+///             &operands,                // tensors to be contracted
+///             "optimal",                // contraction strategy (see crate opt-einsum-path)
+///             None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+///             true,                     // row-major (true) or col-major (false)
+///             None,                     // pre-allocated output tensor (None to allocate internally)
+///         )
+///     };
+///     let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
+///
+///     // transform tblis object back to ndarray object
+///     let arr_g = (vec_g, tsr_g).into_array().into_dimensionality().unwrap();
+///     arr_g
+/// }
+///
+/// let arr_g = ao2mo(arr_c, arr_e);
+/// println!("{:?}", arr_g);
+/// ```
+///
 /// # Safety
 ///
 /// - This function does not check tensor data validity and mutability.
+///
+/// # See also
+///
+/// - [`tblis_einsum_f`] for fallible version.
+/// - [`opt_einsum_path::contract_path`] for details of contraction path optimization.
 pub unsafe fn tblis_einsum<T>(
     subscripts: &str,
     operands: &[&TblisTensor<T>],
@@ -127,9 +272,15 @@ where
     unsafe { tblis_einsum_f(subscripts, operands, optimize, memory_limit, row_major, out_tblis_tensor).unwrap() }
 }
 
+/// Perform einsum operation using TBLIS.
+///
 /// # Safety
 ///
 /// - This function does not check tensor data validity and mutability.
+///
+/// # See also
+///
+/// - [`tblis_einsum`] for non-fallible version.
 #[allow(clippy::type_complexity)]
 pub unsafe fn tblis_einsum_f<T>(
     subscripts: &str,
@@ -261,6 +412,7 @@ pub mod ndarray_einsum {
         }
     }
 
+    /// Trait to convert `(Vec<T>, TblisTensor<T>)` to [`ndarray::ArrayD`].
     pub trait ArrayFromTblisTensor {
         type Out;
         fn into_array(self) -> Self::Out;
@@ -278,6 +430,7 @@ pub mod ndarray_einsum {
         }
     }
 
+    /// Convert `(Vec<T>, TblisTensor<T>)` to [`ndarray::ArrayD`].
     pub fn array_from_tblis_tensor<T>(dat: (Vec<T>, TblisTensor<T>)) -> ArrayD<T>
     where
         T: TblisFloatAPI,
@@ -297,11 +450,11 @@ mod test_ndarray_workable {
     fn test_ndarray_workable() {
         use crate::prelude::*;
         use ndarray::prelude::*;
-        let (nao, nocc): (usize, usize) = (3, 2);
-        let vec_c: Vec<f64> = (0..nao * nocc).map(|x| x as f64).collect();
+        let (nao, nmo): (usize, usize) = (3, 2);
+        let vec_c: Vec<f64> = (0..nao * nmo).map(|x| x as f64).collect();
         let vec_e: Vec<f64> = (0..nao * nao * nao * nao).map(|x| x as f64).collect();
 
-        let arr_c = ArrayView2::from_shape((nao, nocc), &vec_c).unwrap();
+        let arr_c = ArrayView2::from_shape((nao, nmo), &vec_c).unwrap();
         let arr_e = ArrayView4::from_shape((nao, nao, nao, nao), &vec_e).unwrap();
 
         /// # Parameters
