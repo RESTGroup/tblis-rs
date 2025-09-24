@@ -28,14 +28,14 @@ $$
 This tensor contraction is utilized in electronic structure (electronic integral in atomic orbital basis $E_{\mu \nu \kappa \lambda}$ to molecular orbital basis $G_{pqrs}$).
 
 To run the following code, you may need to
-- activate crate feature `ndarray` to make conversion between `ndarray::{Array, ArrayView, ArrayMut}` and `tblis::TblisTensor`;
-- properly link libtblis.so in your project (also see crate [tblis-ffi](https://docs.rs/tblis-ffi) and [tblis-src](https://docs.rs/tblis-ffi) for more information).
+- activate crate feature `ndarray` to make conversion between `ndarray::{Array, ArrayView, ArrayViewMut}` and `tblis::TblisTensor`;
+- properly link libtblis.so in your project (also see crate [tblis-ffi](https://docs.rs/tblis-ffi) and [tblis-src](https://docs.rs/tblis-src) for more information).
 
-The following code spinnet performs this contraction.
+The following code snippet performs this contraction.
 
 ```rust
 // Must declare crate `tblis-src` if you want link tblis dynamically.
-// You can also call the following code in `build.rs`, instead of using tblis-src:
+// You can also call the following code in `build.rs`, instead of using crate `tblis-src`:
 //     println!("cargo:rustc-link-lib=tblis");
 extern crate tblis_src;
 
@@ -43,11 +43,11 @@ use ndarray::prelude::*;
 use tblis::prelude::*;
 
 // dummy setting of matrix C and tensor E
-let (nao, nocc): (usize, usize) = (3, 2);
-let vec_c: Vec<f64> = (0..nao * nocc).map(|x| x as f64).collect();
+let (nao, nmo): (usize, usize) = (3, 2);
+let vec_c: Vec<f64> = (0..nao * nmo).map(|x| x as f64).collect();
 let vec_e: Vec<f64> = (0..nao * nao * nao * nao).map(|x| x as f64).collect();
 
-let arr_c = ArrayView2::from_shape((nao, nocc), &vec_c).unwrap();
+let arr_c = ArrayView2::from_shape((nao, nmo), &vec_c).unwrap();
 let arr_e = ArrayView4::from_shape((nao, nao, nao, nao), &vec_e).unwrap();
 
 /// # Parameters
