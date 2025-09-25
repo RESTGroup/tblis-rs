@@ -78,27 +78,21 @@ let arr_e = ArrayView4::from_shape((nao, nao, nao, nao), &vec_e).unwrap();
 /// # Returns
 /// - `arr_g`: electronic integral $G_{pqrs}$ (in molecular orbital basis)
 fn ao2mo(arr_c: ArrayView2<f64>, arr_e: ArrayView4<f64>) -> Array4<f64> {
-    // transform ndarray objects to tblis objects
-    let tsr_c = arr_c.to_tblis_tensor();
-    let tsr_e = arr_e.to_tblis_tensor();
+    let view_c = arr_c.view().into_dyn();
+    let view_e = arr_e.view().into_dyn();
+    let operands = [&view_c, &view_c, &view_e, &view_c, &view_c];
+    let arr_g = tblis_einsum_ndarray(
+        "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
+        &operands,                // tensors to be contracted
+        "optimal",                // contraction strategy (see crate opt-einsum-path)
+        None,                     // memory limit (None means no limit, see crate opt-einsum-path)
+        true,                     // row-major (true) or col-major (false)
+        None,                     // pre-allocated output tensor (None to allocate internally)
+    )
+    .unwrap();
 
-    // generate operands and perform contraction
-    let operands = [&tsr_c, &tsr_c, &tsr_e, &tsr_c, &tsr_c];
-    let out_g = unsafe {
-        tblis_einsum(
-            "μi,νa,μνκλ,κj,λb->iajb", // einsum subscripts
-            &operands,                // tensors to be contracted
-            "optimal",                // contraction strategy (see crate opt-einsum-path)
-            None,                     // memory limit (None means no limit, see crate opt-einsum-path)
-            true,                     // row-major (true) or col-major (false)
-            None,                     // pre-allocated output tensor (None to allocate internally)
-        )
-    };
-    let (vec_g, tsr_g) = out_g.unwrap(); // (underlying data, tensor shape/stride info)
-
-    // transform tblis object back to ndarray object
-    let arr_g = (vec_g, tsr_g).into_array().into_dimensionality().unwrap();
-    arr_g
+    // transform to 4-dimensional array
+    arr_g.into_dimensionality().unwrap()
 }
 
 let arr_g = ao2mo(arr_c, arr_e);

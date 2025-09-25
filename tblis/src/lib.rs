@@ -18,7 +18,7 @@
 //! | Item | Description |
 //! |--|--|
 //! | fn [`tblis_einsum`] | Einstein summation |
-//! | fn [`tblis_einsum_f`] | Einstein summation (failable) |
+//! | fn [`tblis_einsum_ndarray`] | Einstein summation with ndarray |
 //! | struct [`TblisTensor`] | Tensor struct of this crate |
 //! | trait [`TblisFloatAPI`] | Float trait for TBLIS operations (f32, f64, c32, c64) |
 //!
@@ -27,7 +27,9 @@
 //! | Item | Description |
 //! |--|--|
 //! | [`tblis_einsum`] | (high-level) Einstein summation |
+//! | [`tblis_einsum_ndarray`] | (high-level) Einstein summation with ndarray |
 //! | [`tblis_einsum_f`] | (high-level) Einstein summation (failable) |
+//! | [`tblis_einsum_ndarray_f`] | (high-level) Einstein summation with ndarray (failable) |
 //! | [`tblis_tensor_add`] | (1t-level) $B = \alpha A + \beta B$ |
 //! | [`tblis_tensor_scale`] | (1t-level) $A = \alpha A$ |
 //! | [`tblis_tensor_set`] | (1t-level) $A = \alpha$ |
@@ -65,12 +67,18 @@ pub mod float_trait;
 pub mod tensor_ops;
 pub mod threading;
 
+#[cfg(feature = "ndarray")]
+pub mod ndarray_impl;
+
 pub mod prelude {
     pub use crate::containers::*;
     pub use crate::einsum_impl::*;
     pub use crate::float_trait::*;
     pub use crate::tensor_ops::*;
     pub use crate::threading::*;
+
+    #[cfg(feature = "ndarray")]
+    pub use crate::ndarray_impl::*;
 }
 
 #[allow(unused_imports)]
