@@ -11,6 +11,41 @@ use tblis_ffi::tblis::{tblis_comm, tblis_config};
 
 /* #region cfg builder */
 
+/// Three parameter configuration for TBLIS operations.
+///
+/// # Fields
+///
+/// - `comm`: The communicator for parallel execution (default: `null`).
+/// - `cntx`: The TBLIS context (default: `null`).
+/// - `alpha`: The scalar multiplier $\alpha$ for tensor $A B$ (default: `1`).
+/// - `beta`: The scalar multiplier $\beta$ for tensor $C$ (default: `0`).
+/// - `conja`: Whether to conjugate tensor $A$ (default: `false`).
+/// - `conjb`: Whether to conjugate tensor $B$ (default: `false`).
+///
+/// # Usage
+///
+/// This struct is used as builder. For example, to set `alpha=2.0`, `beta=1.0`, and conjugate `A`:
+///
+/// ```rust
+/// # use tblis::prelude::*;
+/// let cfg_tri = TblisTriCfgBuilder::default()
+///     .alpha(2.0)
+///     .beta(1.0)
+///     .conja(true)
+///     .build()
+///     .unwrap();
+/// ```
+///
+/// # Aliases
+///
+/// - Aliased as [`TblisMultCfg`] for tensor multiplication.
+///
+/// # See also
+///
+/// - [`tblis_tensor_mult`] for usage.
+/// - [`TblisBiCfg`] for two parameter configuration.
+/// - [`TblisUniCfg`] for one parameter configuration.
+/// - [`TblisZeroCfg`] for zero parameter configuration.
 #[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisTriCfg<T>
@@ -40,6 +75,42 @@ where
     }
 }
 
+/// Two parameter configuration for TBLIS operations.
+///
+/// # Fields
+///
+/// - `comm`: The communicator for parallel execution (default: `null`).
+/// - `cntx`: The TBLIS context (default: `null`).
+/// - `alpha`: The scalar multiplier $\alpha$ for tensor $A$ (default: `1`).
+/// - `beta`: The scalar multiplier $\beta$ for tensor $B$ (default: `1`).
+/// - `conja`: Whether to conjugate tensor $A$ (default: `false`).
+/// - `conjb`: Whether to conjugate tensor $B$ (default: `false`).
+///
+/// # Usage
+///
+/// This struct is used as builder. For example, to set `alpha=2.0`, `beta=1.0`, and conjugate `A`:
+///
+/// ```rust
+/// # use tblis::prelude::*;
+/// let cfg_bi = TblisBiCfgBuilder::default()
+///     .alpha(2.0)
+///     .beta(1.0)
+///     .conja(true)
+///     .build()
+///     .unwrap();
+/// ```
+///
+/// # Aliases
+///
+/// - Aliased as [`TblisAddCfg`] for tensor addition, [`TblisDotCfg`] for tensor dot product.
+///
+/// # See also
+///
+/// - [`tblis_tensor_add`] for usage.
+/// - [`tblis_tensor_dot`] for usage.
+/// - [`TblisTriCfg`] for three parameter configuration.
+/// - [`TblisUniCfg`] for one parameter configuration.
+/// - [`TblisZeroCfg`] for zero parameter configuration.
 #[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisBiCfg<T>
@@ -69,6 +140,41 @@ where
     }
 }
 
+/// One parameter configuration for TBLIS operations.
+///
+/// # Fields
+///
+/// - `comm`: The communicator for parallel execution (default: `null`).
+/// - `cntx`: The TBLIS context (default: `null`).
+/// - `alpha`: The scalar multiplier $\alpha$ for tensor $A$ (default: `1`).
+/// - `conj`: Whether to conjugate tensor $A$ (default: `false`).
+///
+/// # Usage
+///
+/// This struct is used as builder. For example, to set `alpha=2.0` and conjugate `A`:
+///
+/// ```rust
+/// # use tblis::prelude::*;
+/// let cfg_uni = TblisUniCfgBuilder::default()
+///     .alpha(2.0)
+///     .conj(true)
+///     .build()
+///     .unwrap();
+/// ```
+///
+/// # Aliases
+///
+/// - Aliased as [`TblisScaleCfg`] for tensor scaling, [`TblisShiftCfg`] for tensor shifting,
+///   [`TblisReduceCfg`] for tensor reduction.
+///
+/// # See also
+///
+/// - [`tblis_tensor_scale`] for usage.
+/// - [`tblis_tensor_shift`] for usage.
+/// - [`tblis_tensor_reduce`] for usage.
+/// - [`TblisTriCfg`] for three parameter configuration.
+/// - [`TblisBiCfg`] for two parameter configuration.
+/// - [`TblisZeroCfg`] for zero parameter configuration.
 #[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisUniCfg<T>
@@ -94,6 +200,23 @@ where
     }
 }
 
+/// Zero parameter configuration for TBLIS operations.
+///
+/// # Fields
+///
+/// - `comm`: The communicator for parallel execution (default: `null`).
+/// - `cntx`: The TBLIS context (default: `null`).
+///
+/// # Alias
+///
+/// - Aliased as [`TblisSetCfg`] for tensor setting.
+///
+/// # See also
+///
+/// - [`tblis_tensor_set`] for usage.
+/// - [`TblisTriCfg`] for three parameter configuration.
+/// - [`TblisBiCfg`] for two parameter configuration.
+/// - [`TblisUniCfg`] for one parameter configuration.
 #[non_exhaustive]
 #[derive(Builder, Debug, Clone)]
 pub struct TblisZeroCfg {
