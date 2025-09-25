@@ -35,6 +35,8 @@
 //! | [`tblis_tensor_reduce`] | (1t-level) $\gamma = \mathrm{op}(A)$ |
 //! | [`tblis_tensor_dot`] | (1t-level) $\gamma = A B$ |
 //! | [`tblis_tensor_mult`] | (3t-level) $C = \alpha A B + \beta C$ |
+//! | [`tblis_get_num_threads`] | Get the number of threads used by TBLIS |
+//! | [`tblis_set_num_threads`] | Set the number of threads used by TBLIS |
 //!
 //! ## Traits
 //!
@@ -61,12 +63,14 @@ pub mod containers;
 pub mod einsum_impl;
 pub mod float_trait;
 pub mod tensor_ops;
+pub mod threading;
 
 pub mod prelude {
     pub use crate::containers::*;
     pub use crate::einsum_impl::*;
     pub use crate::float_trait::*;
     pub use crate::tensor_ops::*;
+    pub use crate::threading::*;
 }
 
 #[allow(unused_imports)]
