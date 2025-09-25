@@ -115,13 +115,13 @@ pub fn tblis_einsum_ndarray<T, A>(
     optimize: impl PathOptimizer,
     memory_limit: impl Into<SizeLimitType>,
     row_major: bool,
-    out_tblis_tensor: Option<&mut TblisTensor<T>>,
+    out: Option<ArrayViewMutD<T>>,
 ) -> Option<ArrayD<T>>
 where
     T: TblisFloatAPI,
     A: ToTblisTensor<T>,
 {
-    tblis_einsum_ndarray_f(subscripts, operands, optimize, memory_limit, row_major, out_tblis_tensor).unwrap()
+    tblis_einsum_ndarray_f(subscripts, operands, optimize, memory_limit, row_major, out).unwrap()
 }
 
 /// High-level failable Einstein summation interface for [`ndarray::ArrayBase`].
@@ -137,7 +137,7 @@ pub fn tblis_einsum_ndarray_f<T, A>(
     optimize: impl PathOptimizer,
     memory_limit: impl Into<SizeLimitType>,
     row_major: bool,
-    out_tblis_tensor: Option<&mut TblisTensor<T>>,
+    out: Option<ArrayViewMutD<T>>,
 ) -> Result<Option<ArrayD<T>>, String>
 where
     T: TblisFloatAPI,
@@ -145,8 +145,10 @@ where
 {
     let tblis_operands: Vec<TblisTensor<T>> = operands.iter().map(|x| x.to_tblis_tensor()).collect();
     let tblis_operands_ref: Vec<&TblisTensor<T>> = tblis_operands.iter().collect();
-    let res =
-        unsafe { tblis_einsum_f(subscripts, &tblis_operands_ref, optimize, memory_limit, row_major, out_tblis_tensor) };
+    let mut out_tblis_tensor = out.map(|x| x.to_tblis_tensor());
+    let res = unsafe {
+        tblis_einsum_f(subscripts, &tblis_operands_ref, optimize, memory_limit, row_major, out_tblis_tensor.as_mut())
+    };
     match res {
         Ok(Some(out)) => Ok(Some(out.into_array())),
         Ok(None) => Ok(None),
