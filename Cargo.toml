@@ -4,7 +4,7 @@ members = ["tblis-ffi", "tblis-src", "tblis"]
 
 [workspace.package]
 edition = "2021"
-version = "0.2.1"
+version = "0.2.2"
 description = "TBLIS FFI bindings, wrappers and build-from-source"
 repository = "https://github.com/RESTGroup/tblis-rs"
 keywords = ["ffi", "chemistry", "tensor"]
@@ -12,8 +12,8 @@ categories = ["science"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
-tblis-ffi = { path = "./tblis-ffi", version = "0.2.1" }
-tblis-src = { path = "./tblis-src", version = "0.2.1" }
+tblis-ffi = { path = "./tblis-ffi", version = "0.2.2" }
+tblis-src = { path = "./tblis-src", version = "0.2.2" }
 num = { version = "0.4" }
 libloading = { version = "0.8" }
 cmake = { version = "0.1" }
