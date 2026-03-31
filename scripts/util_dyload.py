@@ -282,7 +282,7 @@ Please check
                         libraries.push(l);
                         libraries_path.push(candidate.to_string());
                     },
-                    Err(e) => err_msg.push_str(&format!("Failed to load `{candidate}`: {e}\n")),
+                    Err(e) => err_msg.push_str(&format!("Failed to load `{candidate}`: {e}\\n")),
                 }
             }
             let lib = DyLoadLib::new(libraries, libraries_path);
