@@ -21,7 +21,7 @@ endif()
 if(TBLIS_VER)
     message(STATUS "User specified version of library (tblis): ${TBLIS_VER}")
 else()
-    set(TBLIS_VER develop)
+    set(TBLIS_VER master)
     message(STATUS "Download version of library (tblis): ${TBLIS_VER}")
 endif()
 

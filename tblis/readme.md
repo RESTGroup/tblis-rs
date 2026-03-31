@@ -150,7 +150,7 @@ cargo crate [tblis-src](https://docs.rs/tblis-src) has the following cargo featu
 
     CMake configurable variables (can be defined as environment variables):
     - `TBLIS_SRC`: Git repository source directory or URL. All git submodules (marray, blis, tci) should be properly downloaded.
-    - `TBLIS_VER`: Git repository version (branch or tag). Default to be `develop`.
+    - `TBLIS_VER`: Git repository version (branch or tag). Default to be `master`.
 
 - **`static`**: This will link static libary instead of dynamic one. Please note that static linking may require additional dynamic library linking, which should be configured manually by developer in `build.rs` or environment variables `RUSTFLAGS`. Static linking can be difficult when searching symbols, and we recommend dynamic linking in most cases.
 
