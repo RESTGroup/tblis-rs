@@ -1,3 +1,41 @@
+//! FFI module for tblis (dynamic loading).
+//!
+//! This module provides dynamic loading support.
+//!
+//! # Rule and guide of dynamic loading
+//!
+//! By enabling the `dynamic_loading` feature (which is the default), the crate
+//! will attempt to load the tblis shared library at runtime. The loading
+//! process will search for the library in multiple locations, by the following
+//! order:
+//!
+//! 1. User-defined candidates via environment variables `TBLIS_DYLOAD`
+//!    or `RSTSR_DYLOAD`.
+//! 2. LD_LIBRARY_PATH style discovery via environment variables
+//!    `LD_LIBRARY_PATH` (Linux), `DYLD_LIBRARY_PATH` and
+//!    `DYLD_FALLBACK_LIBRARY_PATH` (macOS), `PATH` (Windows). Note we are not
+//!    distinguishing different operating systems, so all these environment
+//!    variables will be checked on all platforms.
+//! 3. Python interpreter path discovery: For each python interpreter found, the
+//!    library is expected to be at the `lib` directory of the python
+//!    installation. For example, if python is at `/path/bin/python`, the
+//!    library is expected at `/path/lib/libtblis.so`.
+//!    - The python interpreter path of `TBLIS_PYTHON_PATH` environment
+//!      variable, if set.
+//!    - The conda prefix path of `CONDA_PREFIX` environment variable, if set.
+//!    - The python interpreter path in `PATH` environment variable, if exists.
+//!      Will first check `python`, then `python3`.
+//! 4. Standard system candidates, such as `lib{LIB_NAME_LINK}.so` in some
+//!    common library directories such as `/usr/lib`, `/usr/local/lib`, and
+//!    `/lib`.
+//!
+//! For API developer, if you want to check the library `libtblis.so` loading
+//! sequence, you can try the following code:
+//! ```rust
+//! let candidates = unsafe { &tblis_ffi::tblis::dyload_lib().__libraries_path };
+//! println!("Library loading candidates: {candidates:#?}");
+//! ```
+
 #![allow(unsafe_op_in_unsafe_fn)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
@@ -19,18 +57,113 @@ mod dynamic_loading_specific {
     use std::fmt::Debug;
     use std::sync::OnceLock;
 
+    use std::env::consts::{DLL_PREFIX, DLL_SUFFIX};
+
+    /// Detect Python interpreter path and return the corresponding lib
+    /// directory. Uses OnceLock pattern for lazy initialization.
+    static PYTHON_LIB_PATH: OnceLock<Vec<String>> = OnceLock::new();
+
+    fn detect_python_lib_paths() -> Vec<String> {
+        PYTHON_LIB_PATH
+            .get_or_init(|| {
+                let mut lib_paths = vec![];
+
+                // 1. Check explicit environment variable first
+                if let Ok(python_path) = std::env::var("TBLIS_PYTHON_PATH") {
+                    if let Some(lib_path) = extract_lib_from_python_bin(&python_path) {
+                        lib_paths.push(lib_path);
+                    }
+                }
+
+                // 2. Check conda prefix exists
+                if let Ok(conda_prefix) = std::env::var("CONDA_PREFIX") {
+                    let conda_lib_path = format!("{conda_prefix}/lib");
+                    if std::path::Path::new(&conda_lib_path).exists() {
+                        lib_paths.push(conda_lib_path);
+                    }
+                }
+
+                // 3. Try to find python in PATH
+                if let Ok(paths) = std::env::var("PATH") {
+                    // first check python, then python3
+                    for path in paths.split(":") {
+                        let python_bin = format!("{path}/python");
+                        if std::path::Path::new(&python_bin).exists() {
+                            if let Some(lib_path) = extract_lib_from_python_bin(&python_bin) {
+                                lib_paths.push(lib_path);
+                            }
+                        }
+                    }
+                    for path in paths.split(":") {
+                        let python_bin = format!("{path}/python3");
+                        if std::path::Path::new(&python_bin).exists() {
+                            if let Some(lib_path) = extract_lib_from_python_bin(&python_bin) {
+                                lib_paths.push(lib_path);
+                            }
+                        }
+                    }
+                }
+
+                lib_paths
+            })
+            .clone()
+    }
+
+    fn extract_lib_from_python_bin(python_bin: &str) -> Option<String> {
+        // If python is at /path/to/bin/python, library should be at /path/to/lib/
+        let bin_path = std::path::Path::new(python_bin);
+        if let Some(parent) = bin_path.parent() {
+            if let Some(base) = parent.parent() {
+                let lib_path = base.join("lib");
+                if lib_path.exists() {
+                    return Some(lib_path.to_string_lossy().to_string());
+                }
+            }
+        }
+        None
+    }
+
     fn get_lib_candidates() -> Vec<String> {
-        use std::env::consts::{DLL_PREFIX, DLL_SUFFIX};
         let mut candidates = vec![];
 
-        // user defined candidates
-        for paths in [format!("RSTSR_DYLOAD_{LIB_NAME}").as_str(), "RSTSR_DYLOAD"] {
-            if let Ok(path) = std::env::var(paths) {
-                candidates.extend(path.split(":").map(|s| s.to_string()).collect::<Vec<_>>());
+        // User-defined candidates via environment variables
+        for env_var in [
+            format!("TBLIS_DYLOAD_{LIB_NAME}").as_str(),
+            "TBLIS_DYLOAD",
+            format!("RSTSR_DYLOAD_{LIB_NAME}").as_str(),
+            "RSTSR_DYLOAD",
+        ] {
+            if let Ok(path) = std::env::var(env_var) {
+                candidates.extend(path.split(":").map(|s| s.to_string()));
             }
         }
 
-        candidates.extend(vec![format!("{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}")]);
+        // LD_LIBRARY_PATH style discovery
+        for env_var in [
+            "LD_LIBRARY_PATH",            // linux
+            "DYLD_LIBRARY_PATH",          // macos
+            "DYLD_FALLBACK_LIBRARY_PATH", // macos
+            "PATH",                       // windows
+        ] {
+            if let Ok(paths) = std::env::var(env_var) {
+                for path in paths.split(":") {
+                    candidates.push(format!("{path}/{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"));
+                }
+            }
+        }
+
+        // Python interpreter path discovery (cached)
+        for lib_path in detect_python_lib_paths() {
+            candidates.push(format!("{lib_path}/{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"));
+        }
+
+        // Standard system candidates
+        candidates.extend(vec![
+            format!("{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"),
+            format!("/usr/lib/{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"),
+            format!("/usr/local/lib/{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"),
+            format!("/lib/{DLL_PREFIX}{LIB_NAME_LINK}{DLL_SUFFIX}"),
+        ]);
         candidates
     }
 
@@ -45,13 +178,14 @@ This happens in module `{MOD_NAME}`.
 Unable to dynamically load the {LIB_NAME_SHOW} (`{LIB_NAME_LINK}`) shared library.
 Candidates: {candidates:#?}
 
-Please check
-- if dynamic-loading is not desired, please disable the `dynamic_loading` feature in your `Cargo.toml` (by something like --no-default-features).
-- if you want to provide custom {LIB_NAME_SHOW} library, use environment variable `RSTSR_DYLOAD_{LIB_NAME}` or `RSTSR_DYLOAD` to specify the path to the library.
-- if `lib{LIB_NAME_LINK}.so` (linux) or `lib{LIB_NAME_LINK}.dylib` (macOS) or `lib{LIB_NAME_LINK}.dll` (Windows) is installed on your system.
-- if `LD_LIBRARY_PATH` (linux) or `DYLD_LIBRARY_PATH` (macOS) or `PATH` (Windows) environment variable is set correctly (any path that's visible to linker).
-- this crate does not use things like `LD_PRELOAD` or `DYLD_INSERT_LIBRARIES` to load the library.
-- this crate does not support static linking of libraries when dynamic-loading.
+Please check:
+- If dynamic-loading is not desired, disable the `dynamic_loading` feature in Cargo.toml.
+- Use environment variable `TBLIS_DYLOAD_{LIB_NAME}`, `TBLIS_DYLOAD`,
+  `RSTSR_DYLOAD_{LIB_NAME}`, or `RSTSR_DYLOAD` to specify the library path.
+- If `lib{LIB_NAME_LINK}.so` is installed on your system.
+- If `LD_LIBRARY_PATH` is set correctly.
+- Python interpreter path discovery: if Python is at `/path/bin/python`,
+  the library is expected at `/path/lib/libtblis.so`.
 
 Error message(s):
 {err_msg}
@@ -63,14 +197,10 @@ Error message(s):
         panic!(
             r#"
 This happens in module `{MOD_NAME}`.
-Unable to dynamically load the {LIB_NAME_SHOW} (`{LIB_NAME_LINK}`) shared library, due to condition unfulfilled.
-Condition: `tblis_tensor_mult` must be available.
+Library loaded but condition not met: `tblis_tensor_mult` not found.
 Found libraries: {candidates:#?}
 
-Please check
-- if dynamic-loading is not desired, please disable the `dynamic_loading` feature in your `Cargo.toml` (by something like --no-default-features).
-- if you want to provide custom {LIB_NAME_SHOW} library, use environment variable `RSTSR_DYLOAD_{LIB_NAME}` or `RSTSR_DYLOAD` to specify the path to the library.
-- sequence of libraries matters: `RSTSR_DYLOAD_{LIB_NAME}` will be tried first, then `RSTSR_DYLOAD`, then system dynamic library search paths.
+Please check that the loaded library is a valid tblis library.
 "#
         )
     }
@@ -88,7 +218,10 @@ Please check
                         libraries.push(l);
                         libraries_path.push(candidate.to_string());
                     },
-                    Err(e) => err_msg.push_str(&format!("Failed to load `{candidate}`: {e}\n")),
+                    Err(e) => err_msg.push_str(&format!(
+                        "Failed to load `{candidate}`: {e}
+"
+                    )),
                 }
             }
             let lib = DyLoadLib::new(libraries, libraries_path);
