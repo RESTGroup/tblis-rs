@@ -15,13 +15,14 @@ This crate is not official bindgen project. It is originally intended to serve r
 
 ## Dynamic loading
 
-This crate supports dynamic loading.
+By default, the `tblis` shared library is loaded at runtime via `libloading`. The loading process will search for the library in multiple locations, by the following order:
 
-If you want to use dynamic loading, please enable cargo feature `dynamic_loading` when cargo build.
+1. User-defined candidates via environment variables `TBLIS_DYLOAD` or `RSTSR_DYLOAD`.
+2. `LD_LIBRARY_PATH` style discovery via environment variables `LD_LIBRARY_PATH` (Linux), `DYLD_LIBRARY_PATH` and `DYLD_FALLBACK_LIBRARY_PATH` (macOS), `PATH` (Windows).
+3. Python interpreter path discovery: if Python is at `/path/bin/python`, the library is expected at `/path/lib/libtblis.so`. This includes `TBLIS_PYTHON_PATH`, `CONDA_PREFIX`, and Python interpreters found in `PATH`.
+4. Standard system candidates such as `/usr/lib`, `/usr/local/lib`, and `/lib`.
 
-The dynamic loading will try to find proper library when your program initializes.
-- This crate will automatically detect proper libraries, if these libraries are in environmental path `LD_LIBRARY_PATH` (Linux) `DYLD_LIBRARY_PATH` (Mac OS), `PATH` (Windows).
-- If you want to override the library to be loaded, please set these shell environmental variable `RSTSR_DYLOAD_TBLIS` to the dynamic library path.
+To disable dynamic loading and use static/dynamic linking instead, disable the `dynamic_loading` cargo feature.
 
 ## Cargo features
 
