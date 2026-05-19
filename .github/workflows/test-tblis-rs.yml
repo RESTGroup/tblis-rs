@@ -17,4 +17,4 @@ jobs:
       - name: run tests directly
         run: |
           cd tblis
-          cargo test --test "*" --features="tblis-src/build_from_source" -- --nocapture
+          cargo test --test "*" --features="tblis-src/build_from_source" -- --nocapture --test-threads=1
