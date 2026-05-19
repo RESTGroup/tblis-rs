@@ -9,25 +9,20 @@
 //! process will search for the library in multiple locations, by the following
 //! order:
 //!
-//! 1. User-defined candidates via environment variables `TBLIS_DYLOAD`
-//!    or `RSTSR_DYLOAD`.
-//! 2. LD_LIBRARY_PATH style discovery via environment variables
-//!    `LD_LIBRARY_PATH` (Linux), `DYLD_LIBRARY_PATH` and
-//!    `DYLD_FALLBACK_LIBRARY_PATH` (macOS), `PATH` (Windows). Note we are not
-//!    distinguishing different operating systems, so all these environment
-//!    variables will be checked on all platforms.
-//! 3. Python interpreter path discovery: For each python interpreter found, the
-//!    library is expected to be at the `lib` directory of the python
-//!    installation. For example, if python is at `/path/bin/python`, the
-//!    library is expected at `/path/lib/libtblis.so`.
-//!    - The python interpreter path of `TBLIS_PYTHON_PATH` environment
-//!      variable, if set.
+//! 1. User-defined candidates via environment variables `TBLIS_DYLOAD` or `RSTSR_DYLOAD`.
+//! 2. LD_LIBRARY_PATH style discovery via environment variables `LD_LIBRARY_PATH` (Linux),
+//!    `DYLD_LIBRARY_PATH` and `DYLD_FALLBACK_LIBRARY_PATH` (macOS), `PATH` (Windows). Note we are
+//!    not distinguishing different operating systems, so all these environment variables will be
+//!    checked on all platforms.
+//! 3. Python interpreter path discovery: For each python interpreter found, the library is expected
+//!    to be at the `lib` directory of the python installation. For example, if python is at
+//!    `/path/bin/python`, the library is expected at `/path/lib/libtblis.so`.
+//!    - The python interpreter path of `TBLIS_PYTHON_PATH` environment variable, if set.
 //!    - The conda prefix path of `CONDA_PREFIX` environment variable, if set.
-//!    - The python interpreter path in `PATH` environment variable, if exists.
-//!      Will first check `python`, then `python3`.
-//! 4. Standard system candidates, such as `lib{LIB_NAME_LINK}.so` in some
-//!    common library directories such as `/usr/lib`, `/usr/local/lib`, and
-//!    `/lib`.
+//!    - The python interpreter path in `PATH` environment variable, if exists. Will first check
+//!      `python`, then `python3`.
+//! 4. Standard system candidates, such as `lib{LIB_NAME_LINK}.so` in some common library
+//!    directories such as `/usr/lib`, `/usr/local/lib`, and `/lib`.
 //!
 //! For API developer, if you want to check the library `libtblis.so` loading
 //! sequence, you can try the following code:
